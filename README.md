@@ -21,7 +21,7 @@ Arduino sketch for NI6001 and multiple peripheral devices interfacing
 |TEMP (temperature sensor DS18B20 read)|0-127 (address)|
 |CFG (set config)|4X - according to PWM config table; <br>6 - enable I2C; <br>7 - set for temp. sensors|
 
-**PWM config table**:
+**PWM config table** (PIN / X):
 |44, 45, 46|4, 13|2, 3, 5, 6, 7, 8, 11, 12|9, 10|
 |---|---|---|---|
 |1 - 31372.55 Гц|1 - 62500.00 Гц|1 - 31372.55 Гц|1 - 31372.55 Гц|
