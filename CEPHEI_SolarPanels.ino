@@ -9,7 +9,7 @@ int ONE_WIRE_BUS = 2;
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
-float criticalTemperature = 30.0;
+float criticalTemperature = 70.0;
 int BH1750address = 0x23;
 byte buff[10];
 
