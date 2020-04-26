@@ -385,7 +385,7 @@ void checkServo(int pin)
 
 /** functions */
 bool is_I2C_pin(int pin) {
-  int I2C_PINS = {20, 21};
+  int I2C_PINS[2] = {20, 21};
   if (in_array(pin, sizeof(I2C_PINS) / sizeof(I2C_PINS[0]), I2C_PINS) {
     return true;
   } else {
