@@ -9,7 +9,7 @@ int ONE_WIRE_BUS = 2;
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
-float criticalTemperature = 30.0;
+float criticalTemperature = 70.0;
 int BH1750address = 0x23;
 byte buff[10];
 
@@ -128,7 +128,7 @@ void loop()
 
 /**
 * Перезапись портов в соответствии с конфигом в EEPROM
-* 55-70 - аналоговые/цифровые
+* 55-70 - аналоговые
 */
 void readConfig() {
   for (int pin = 0; pin < 70; pin++) {
