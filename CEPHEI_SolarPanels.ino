@@ -4,7 +4,7 @@
 #include <Wire.h>
 #include <avr/eeprom.h>
 
-byte TEMP_SENSORS_COUNT = 2;
+byte TEMP_SENSORS_COUNT = 1;
 int ONE_WIRE_BUS = 2;
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
@@ -16,12 +16,12 @@ byte buff[10];
 Servo servos[14];
 byte AIIndex = 0;
 byte DIIndex = 0;
-byte DOIndex = 0;
+byte DOIndex = 0;  
 byte PWMIndex = 0;
 byte servoIndex = 0;
 byte index = 0;
 byte dataIndex = 0;
-boolean isReadable = false;
+bool isReadable = false;
 bool isI2CEnabled = false;
 int AI_PINS[16];
 int DI_PINS[54];
@@ -31,7 +31,6 @@ int SERV_PINS[14];
 String dataString;
 String datas[3][5];
 String data[3];
-typedef int (*cmpfunc)(void *, void *);
 
 void setup() 
 {
@@ -56,11 +55,10 @@ void setup()
 
 void loop() 
 {
-  unsigned int startTempTime = micros();
   OneWire oneWire(ONE_WIRE_BUS);
   DallasTemperature sensors(&oneWire);
   sensors.requestTemperatures();
-  
+
   for (byte i = 0; i < TEMP_SENSORS_COUNT; i++) {
     float temperature = sensors.getTempCByIndex(i);
     if (temperature > criticalTemperature || temperature < 0.0) {
@@ -69,8 +67,6 @@ void loop()
       }
     }
   }
-
-  Serial.println(micros() - startTempTime);
     
   if (Serial.available() > 0) {  //если есть доступные данные
     if (Serial.read() == 64 && !isReadable) {
