@@ -37,6 +37,7 @@ void setup()
   Wire.begin();
   Serial.begin(115200);
   byte isConfigured = eeprom_read_byte(0);
+
   if (isConfigured == 255) {
     /**
      * Первоначальная конфигурация портов ДО перезаписи командой CFG
@@ -58,7 +59,7 @@ void loop()
   OneWire oneWire(ONE_WIRE_BUS);
   DallasTemperature sensors(&oneWire);
   sensors.requestTemperatures();
-
+  
   for (byte i = 0; i < TEMP_SENSORS_COUNT; i++) {
     float temperature = sensors.getTempCByIndex(i);
     if (temperature > criticalTemperature || temperature < 0.0) {
@@ -67,7 +68,7 @@ void loop()
       }
     }
   }
-    
+  
   if (Serial.available() > 0) {  //если есть доступные данные
     if (Serial.read() == 64 && !isReadable) {
       isReadable = true;
@@ -111,7 +112,10 @@ void loop()
         } else if (command == "CFG") {
           byte function = lowByte(argument);
           setConfig(pin, function);
+          eeprom_write_byte(0, 1);
           eeprom_write_byte(pin + 1, function);
+
+          Serial.println("@OK<CR>");
         }
         datas[0][i] = "";
         datas[1][i] = "";
@@ -204,6 +208,9 @@ void setConfig(int pin, byte function)
     isI2CEnabled = true;
   } else if (function == 7) {
     ONE_WIRE_BUS = pin;
+  } else if (function == 99) {
+    eeprom_write_byte(pin + 1, 255);
+    readConfig();
   }
 }
 
