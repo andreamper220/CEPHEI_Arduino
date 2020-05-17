@@ -21,8 +21,8 @@ bool isI2CEnabled = false;
 int AI_PINS[16];
 int DI_PINS[54];
 int DO_PINS[54];
-int PWM_PINS[14];
-int SERV_PINS[14];
+int PWM_PINS[14] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 44, 45};
+int SERV_PINS[14] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 44, 45};
 String dataString;
 String datas[3][5];
 String data[3];
@@ -45,8 +45,6 @@ void setup()
     DI_PINS[i] = i;
     DO_PINS[i] = i;
   }
-  PWM_PINS = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 44, 45};
-  SERV_PINS = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 44, 45};
   
   if (isConfigured == 1) {
     readConfig();
@@ -143,7 +141,7 @@ void setConfig(int pin, byte function)
 {
   if (function == 10 || function == 11) {
     int analogPin = pin;
-    AI_PINS[AIIndex] = analogPin;
+//    AI_PINS[AIIndex] = analogPin;
     switch(function) {
       case 10:
         analogReference(DEFAULT);
@@ -151,17 +149,17 @@ void setConfig(int pin, byte function)
         analogReference(EXTERNAL);
     }
     pinMode(analogPin, INPUT);
-    AIIndex++;
+//    AIIndex++;
     eeprom_write_byte(0, 1);
     eeprom_write_byte(pin + 1, function);
   } else if (function == 2) {
-    DI_PINS[DIIndex] = pin;
+//    DI_PINS[DIIndex] = pin;
     pinMode(pin, INPUT);
-    DIIndex++;
+//    DIIndex++;
     eeprom_write_byte(0, 1);
     eeprom_write_byte(pin + 1, function);
   } else if (function == 3) {
-    DO_PINS[DOIndex] = pin;
+//    DO_PINS[DOIndex] = pin;
     pinMode(pin, OUTPUT);
     switch (function % 30) {
       case 1:
@@ -171,7 +169,7 @@ void setConfig(int pin, byte function)
         digitalWrite(pin, LOW);
         break;
     }
-    DOIndex++;
+//    DOIndex++;
     eeprom_write_byte(0, 1);
     eeprom_write_byte(pin + 1, function);
   } else if (function > 40 && function <= 47) {
@@ -206,8 +204,8 @@ void setConfig(int pin, byte function)
         TCCR5B = TCCR5B & B11111000  | frequency;
         break;
     }
-    PWM_PINS[PWMIndex] = pin;
-    PWMIndex++;
+//    PWM_PINS[PWMIndex] = pin;
+//    PWMIndex++;
     eeprom_write_byte(0, 1);
     eeprom_write_byte(pin + 1, function);
   } else if (function == 5) {
