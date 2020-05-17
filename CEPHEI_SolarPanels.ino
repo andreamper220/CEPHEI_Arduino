@@ -27,12 +27,17 @@ String dataString;
 String datas[3][5];
 String data[3];
 
+unsigned long start;
+
 void setup() 
 {
   Wire.begin();
   Serial.begin(115200);
   byte isConfigured = eeprom_read_byte(0);
 
+  for (byte i = 0; i <= 13; i++) {
+      SERV_PINS[i] = 255;
+    }
   for (byte i = 54; i <= 70; i++) {
     AI_PINS[i - 54] = i;
   }
@@ -50,6 +55,7 @@ void setup()
 
 void loop() 
 {
+  start = micros();
   OneWire oneWire(ONE_WIRE_BUS);
   DallasTemperature sensors(&oneWire);
   sensors.requestTemperatures();
@@ -80,43 +86,45 @@ void loop()
       }
       index = 0;
     }
-  } 
-    
-  if (isReadable) {
-    for (byte i = 0; i < 5; i++) {
-      for (byte j = 0; j < 3; j++) {
-        data[j] = datas[j][i];  
+  } else {
+    if (isReadable) {
+      for (byte i = 0; i < 5; i++) {
+        for (byte j = 0; j < 3; j++) {
+          data[j] = datas[j][i];  
+        }
+        if (data[0] == 0) {
+          break;
+        }
+        
+        int pin = data[1].toInt();
+        int argument = data[2].toInt();
+        String command = data[0];
+        if (command == "AI") {
+          getAnalogInput(pin, argument);
+        } else if (command == "DI") {
+          getDigitalInput(pin, argument);
+        } else if (command == "DO") {
+          setOutput(pin, argument);
+        } else if (command == "PWM") {
+          setOutputPWM(pin, argument, true);
+        } else if (command == "SERV") {
+          setOutputServo(pin, argument);
+        } else if (command == "LUX") {
+          getLux(pin, argument);
+        } else if (command == "TEMP") {
+          getTemp(pin, argument);
+        } else if (command == "CFG") {
+          byte function = lowByte(argument);
+          setConfig(pin, function);
+          Serial.println("@OK<CR>");
+        }
+        Serial.println(micros() - start);
+        datas[0][i] = "";
+        datas[1][i] = "";
+        datas[2][i] = "";
       }
-      int pin = data[1].toInt();
-      int argument = data[2].toInt();
-      String command = data[0];
-      if (command == "AI") {
-        getAnalogInput(pin, argument);
-      } else if (command == "DI") {
-        getDigitalInput(pin, argument);
-      } else if (command == "DO") {
-        setOutput(pin, argument);
-      } else if (command == "PWM") {
-        setOutputPWM(pin, argument, true);
-      } else if (command == "SERV") {
-        setOutputServo(pin, argument);
-      } else if (command == "LUX") {
-        getLux(pin, argument);
-      } else if (command == "TEMP") {
-        getTemp(pin, argument);
-      } else if (command == "CFG") {
-        byte function = lowByte(argument);
-        setConfig(pin, function);
-        eeprom_write_byte(0, 1);
-        eeprom_write_byte(pin + 1, function);
-
-        Serial.println("@OK<CR>");
-      }
-      datas[0][i] = "";
-      datas[1][i] = "";
-      datas[2][i] = "";
+      isReadable = false;
     }
-    isReadable = false;
   }
 }
 
@@ -144,10 +152,14 @@ void setConfig(int pin, byte function)
     }
     pinMode(analogPin, INPUT);
     AIIndex++;
+    eeprom_write_byte(0, 1);
+    eeprom_write_byte(pin + 1, function);
   } else if (function == 2) {
     DI_PINS[DIIndex] = pin;
-        pinMode(pin, INPUT);
-        DIIndex++;
+    pinMode(pin, INPUT);
+    DIIndex++;
+    eeprom_write_byte(0, 1);
+    eeprom_write_byte(pin + 1, function);
   } else if (function == 3) {
     DO_PINS[DOIndex] = pin;
     pinMode(pin, OUTPUT);
@@ -160,6 +172,8 @@ void setConfig(int pin, byte function)
         break;
     }
     DOIndex++;
+    eeprom_write_byte(0, 1);
+    eeprom_write_byte(pin + 1, function);
   } else if (function > 40 && function <= 47) {
     byte frequency = function % 40;                                                                                                     
     pinMode(pin, OUTPUT);
@@ -194,14 +208,29 @@ void setConfig(int pin, byte function)
     }
     PWM_PINS[PWMIndex] = pin;
     PWMIndex++;
+    eeprom_write_byte(0, 1);
+    eeprom_write_byte(pin + 1, function);
   } else if (function == 5) {
     SERV_PINS[servoIndex] = pin;
     servos[servoIndex].attach(pin);
     servoIndex++;
+    eeprom_write_byte(0, 1);
+    eeprom_write_byte(pin + 1, function);
   } else if (function == 6) {
     isI2CEnabled = true;
   } else if (function == 7) {
     ONE_WIRE_BUS = pin;
+    eeprom_write_byte(0, 1);
+    eeprom_write_byte(pin + 1, function);
+  } else if (function == 97) {
+    Serial.println("@OK REPLY " + String(eeprom_read_byte(pin + 1)));  
+  } else if (function == 98) {
+    for (int pin = 0; pin < 70; pin++) {
+      byte function = eeprom_read_byte(pin + 1);
+      if (function != 255) {
+        Serial.println(pin);
+      }
+    }
   } else if (function == 99) {
     eeprom_write_byte(pin + 1, 255);
     readConfig();
@@ -296,7 +325,7 @@ void setOutputServo(int pin, int argument)
       Serial.println("@ER 3<CR>");
     } else {
       int index = find_key_by_value(pin, sizeof(SERV_PINS) / sizeof(SERV_PINS[0]), SERV_PINS);
-      if (index != 255 && SERV_PINS[servoIndex] != 255) {
+      if (index != 255) {
         servos[index].write(argument);
       } else {
         SERV_PINS[servoIndex] = pin;
