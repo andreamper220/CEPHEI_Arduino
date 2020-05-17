@@ -4,20 +4,15 @@
 #include <Wire.h>
 #include <avr/eeprom.h>
 
-byte TEMP_SENSORS_COUNT = 1;
+#define TEMP_SENSORS_COUNT    1
+#define CRITICAL_TEMPERATURE  70
+
+byte buff[2];
 int ONE_WIRE_BUS = 2;
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
-float criticalTemperature = 70.0;
-int BH1750address = 0x23;
-byte buff[10];
-
 Servo servos[14];
-byte AIIndex = 0;
-byte DIIndex = 0;
-byte DOIndex = 0;  
-byte PWMIndex = 0;
 byte servoIndex = 0;
 byte index = 0;
 byte dataIndex = 0;
@@ -26,7 +21,7 @@ bool isI2CEnabled = false;
 int AI_PINS[16];
 int DI_PINS[54];
 int DO_PINS[54];
-int PWM_PINS[14] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 44, 45};
+int PWM_PINS[14];
 int SERV_PINS[14];
 String dataString;
 String datas[3][5];
@@ -38,18 +33,17 @@ void setup()
   Serial.begin(115200);
   byte isConfigured = eeprom_read_byte(0);
 
-  if (isConfigured == 255) {
-    /**
-     * Первоначальная конфигурация портов ДО перезаписи командой CFG
-     */
-    for (byte i = 54; i <= 70; i++) {
-      AI_PINS[i - 54] = i;
-    }
-    for (byte i = 0; i <= 53; i++) {
-      DI_PINS[i] = i;
-      DO_PINS[i] = i;
-    }
-  } else if (isConfigured == 1) {
+  for (byte i = 54; i <= 70; i++) {
+    AI_PINS[i - 54] = i;
+  }
+  for (byte i = 0; i <= 53; i++) {
+    DI_PINS[i] = i;
+    DO_PINS[i] = i;
+  }
+  PWM_PINS = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 44, 45};
+  SERV_PINS = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 44, 45};
+  
+  if (isConfigured == 1) {
     readConfig();
   }
 }
@@ -62,7 +56,7 @@ void loop()
   
   for (byte i = 0; i < TEMP_SENSORS_COUNT; i++) {
     float temperature = sensors.getTempCByIndex(i);
-    if (temperature > criticalTemperature || temperature < 0.0) {
+    if (temperature > CRITICAL_TEMPERATURE || temperature < 0.0) {
       for (byte j = 0; j < (sizeof(PWM_PINS) / sizeof(PWM_PINS[0])); j++) {
         setOutputPWM(PWM_PINS[j], 0, false);
       }
@@ -86,43 +80,43 @@ void loop()
       }
       index = 0;
     }
-  } else {
-    if (isReadable) {
-      for (byte i = 0; i < 5; i++) {
-        for (byte j = 0; j < 3; j++) {
-          data[j] = datas[j][i];  
-        }
-        int pin = data[1].toInt();
-        int argument = data[2].toInt();
-        String command = data[0];
-        if (command == "AI") {
-          getAnalogInput(pin, argument);
-        } else if (command == "DI") {
-          getDigitalInput(pin, argument);
-        } else if (command == "DO") {
-          setOutput(pin, argument);
-        } else if (command == "PWM") {
-          setOutputPWM(pin, argument, true);
-        } else if (command == "SERV") {
-          setOutputServo(pin, argument);
-        } else if (command == "LUX") {
-          getLux(pin, argument);
-        } else if (command == "TEMP") {
-          getTemp(pin, argument);
-        } else if (command == "CFG") {
-          byte function = lowByte(argument);
-          setConfig(pin, function);
-          eeprom_write_byte(0, 1);
-          eeprom_write_byte(pin + 1, function);
-
-          Serial.println("@OK<CR>");
-        }
-        datas[0][i] = "";
-        datas[1][i] = "";
-        datas[2][i] = "";
+  } 
+    
+  if (isReadable) {
+    for (byte i = 0; i < 5; i++) {
+      for (byte j = 0; j < 3; j++) {
+        data[j] = datas[j][i];  
       }
-      isReadable = false;
+      int pin = data[1].toInt();
+      int argument = data[2].toInt();
+      String command = data[0];
+      if (command == "AI") {
+        getAnalogInput(pin, argument);
+      } else if (command == "DI") {
+        getDigitalInput(pin, argument);
+      } else if (command == "DO") {
+        setOutput(pin, argument);
+      } else if (command == "PWM") {
+        setOutputPWM(pin, argument, true);
+      } else if (command == "SERV") {
+        setOutputServo(pin, argument);
+      } else if (command == "LUX") {
+        getLux(pin, argument);
+      } else if (command == "TEMP") {
+        getTemp(pin, argument);
+      } else if (command == "CFG") {
+        byte function = lowByte(argument);
+        setConfig(pin, function);
+        eeprom_write_byte(0, 1);
+        eeprom_write_byte(pin + 1, function);
+
+        Serial.println("@OK<CR>");
+      }
+      datas[0][i] = "";
+      datas[1][i] = "";
+      datas[2][i] = "";
     }
+    isReadable = false;
   }
 }
 
@@ -320,6 +314,7 @@ void setOutputServo(int pin, int argument)
 void getLux(int pin, int argument)
 {
   int i;
+  int BH1750address;
   uint16_t value=0;
   if (argument == 0) {
     BH1750address = 0x23; //GND
@@ -399,7 +394,7 @@ bool is_I2C_pin(int pin) {
 int find_key_by_value(int val, int arr_size, int *arr) 
 {
   for (int i = 0; i < arr_size; i++) {
-    if (val = arr[i]) {
+    if (val == arr[i]) {
       return i;
     }
   }
