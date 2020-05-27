@@ -53,7 +53,6 @@ void setup()
 
 void loop() 
 {
-  start = micros();
   OneWire oneWire(ONE_WIRE_BUS);
   DallasTemperature sensors(&oneWire);
   sensors.requestTemperatures();
@@ -66,6 +65,7 @@ void loop()
       }
     }
   }
+  start = micros();
   
   if (Serial.available() > 0) {  //если есть доступные данные
     if (Serial.read() == 64 && !isReadable) {
