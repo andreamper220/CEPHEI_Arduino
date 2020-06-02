@@ -65,8 +65,7 @@ void loop()
       }
     }
   }
-  start = micros();
-  
+    
   if (Serial.available() > 0) {  //если есть доступные данные
     if (Serial.read() == 64 && !isReadable) {
       isReadable = true;
@@ -74,6 +73,9 @@ void loop()
     // считываем команду
     if (isReadable) {
       dataString = Serial.readStringUntil('#');
+      if (dataString != "") {
+        isReadable = false;
+      }
       char* dataCharStar = dataString.c_str();
       char* dataChar = strtok(dataCharStar, " ");
       while (dataChar != NULL) {
@@ -85,7 +87,6 @@ void loop()
       index = 0;
     }
   } else {
-    if (isReadable) {
       for (byte i = 0; i < 5; i++) {
         for (byte j = 0; j < 3; j++) {
           data[j] = datas[j][i];  
@@ -116,13 +117,10 @@ void loop()
           setConfig(pin, function);
           Serial.println("@OK<CR>");
         }
-        Serial.println(micros() - start);
         datas[0][i] = "";
         datas[1][i] = "";
         datas[2][i] = "";
       }
-      isReadable = false;
-    }
   }
 }
 
