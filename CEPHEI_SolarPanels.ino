@@ -6,6 +6,7 @@
 
 #define TEMP_SENSORS_COUNT    1
 #define CRITICAL_TEMPERATURE  70
+#define COMMANDS_COUNT        5
 
 byte buff[2];
 int ONE_WIRE_BUS = 2;
@@ -17,6 +18,7 @@ byte servoIndex = 0;
 byte index = 0;
 byte dataIndex = 0;
 bool isReadable = false;
+bool isDataFinished = false;
 bool isI2CEnabled = false;
 int AI_PINS[16];
 int DI_PINS[54];
@@ -24,10 +26,10 @@ int DO_PINS[54];
 int PWM_PINS[14] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 44, 45};
 int SERV_PINS[14] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 44, 45};
 String dataString;
-String datas[3][5];
+String datas[3][COMMANDS_COUNT];
 String data[3];
 
-unsigned long start;
+unsigned long start = 0;
 
 void setup() 
 {
@@ -65,7 +67,7 @@ void loop()
       }
     }
   }
-    
+
   if (Serial.available() > 0) {  //если есть доступные данные
     if (Serial.read() == 64 && !isReadable) {
       isReadable = true;
@@ -79,6 +81,12 @@ void loop()
       char* dataCharStar = dataString.c_str();
       char* dataChar = strtok(dataCharStar, " ");
       while (dataChar != NULL) {
+        if (index > COMMANDS_COUNT * 3) {
+          Serial.println("@ER 0<CR>");
+          isDataFinished = false;
+        } else {
+          isDataFinished = true;
+        }
         byte multiplier = (index / 3 > 1) ? index / 3 : 1;
         datas[index % (3 * multiplier)][index / 3] = dataChar;
         dataChar = strtok(NULL, " ");
@@ -86,15 +94,15 @@ void loop()
       }
       index = 0;
     }
-  } else {
-      for (byte i = 0; i < 5; i++) {
+
+    if (isDataFinished) {
+      for (byte i = 0; i < COMMANDS_COUNT; i++) {
         for (byte j = 0; j < 3; j++) {
           data[j] = datas[j][i];  
         }
         if (data[0] == 0) {
           break;
         }
-        
         int pin = data[1].toInt();
         int argument = data[2].toInt();
         String command = data[0];
@@ -121,7 +129,9 @@ void loop()
         datas[1][i] = "";
         datas[2][i] = "";
       }
-  }
+      isDataFinished = false;
+    }
+  } 
 }
 
 /**
