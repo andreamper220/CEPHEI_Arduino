@@ -52,6 +52,7 @@ Example: `@PWM 11 120 LUX 1 1 TEMP 2 0#`
 
 |**CODE**|**DESCRIPTION**|**SOLUTION**|
 |---|---|---|
+|0|commands amount error|decrease commands count|
 |1|pins error|try to use another pin: maybe, you set AO instead of PWM etc.|
 |2|BH1750 address error|try to set another address of lux sensor|
 |3|I2C error|try to use another pin instead of I2C pins|
