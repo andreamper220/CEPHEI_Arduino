@@ -422,17 +422,17 @@ void checkServo(int pin)
 /** Serial functions */
 void sendSuccess()
 {
-  Serial.println("@OK");
+  Serial.println("@OK" + " " + "buffer size = " + String(Serial.available()));
 }
 
 void sendFailure(int errorType)
 {
-  Serial.println("@ER " + String(errorType));
+  Serial.println("@ER " + String(errorType) + " " + "buffer size = " + String(Serial.available()));
 }
 
 void sendValue(String value)
 {
-  Serial.println("@OK REPLY " + value);
+  Serial.println("@OK REPLY " + value + " " + "buffer size = " + String(Serial.available()));
 }
 
 /** functions */
