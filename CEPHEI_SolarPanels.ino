@@ -6,7 +6,12 @@
 
 #define TEMP_SENSORS_COUNT    1
 #define CRITICAL_TEMPERATURE  70
-#define COMMANDS_COUNT        5
+
+/** ERROR types */
+#define COMMANDS_COUNT_ERROR  0
+#define PINS_ERROR            1
+#define BH1750_ADDRESS_ERROR  2
+#define I2C_ERROR             3
 
 byte buff[2];
 int ONE_WIRE_BUS = 2;
@@ -26,7 +31,7 @@ int DO_PINS[54];
 int PWM_PINS[14] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 44, 45};
 int SERV_PINS[14] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 44, 45};
 String dataString;
-String datas[3][COMMANDS_COUNT];
+String datas[3][1];
 String data[3];
 
 unsigned long start = 0;
@@ -68,11 +73,11 @@ void loop()
     }
   }
 
-  if (Serial.available() > 0) {  //если есть доступные данные
+  if (Serial.available() > 0) {  
     if (Serial.read() == 64 && !isReadable) {
       isReadable = true;
     }
-    // считываем команду
+
     if (isReadable) {
       dataString = Serial.readStringUntil('#');
       if (dataString != "") {
@@ -80,9 +85,10 @@ void loop()
       }
       char* dataCharStar = dataString.c_str();
       char* dataChar = strtok(dataCharStar, " ");
+      
       while (dataChar != NULL) {
-        if (index > COMMANDS_COUNT * 3) {
-          Serial.println("@ER 0<CR>");
+        if (index > 3) {
+          sendFailure(COMMANDS_COUNT_ERROR);
           isDataFinished = false;
         } else {
           isDataFinished = true;
@@ -96,39 +102,37 @@ void loop()
     }
 
     if (isDataFinished) {
-      for (byte i = 0; i < COMMANDS_COUNT; i++) {
-        for (byte j = 0; j < 3; j++) {
-          data[j] = datas[j][i];  
-        }
-        if (data[0] == 0) {
-          break;
-        }
-        int pin = data[1].toInt();
-        int argument = data[2].toInt();
-        String command = data[0];
-        if (command == "AI") {
-          getAnalogInput(pin, argument);
-        } else if (command == "DI") {
-          getDigitalInput(pin, argument);
-        } else if (command == "DO") {
-          setOutput(pin, argument);
-        } else if (command == "PWM") {
-          setOutputPWM(pin, argument, true);
-        } else if (command == "SERV") {
-          setOutputServo(pin, argument);
-        } else if (command == "LUX") {
-          getLux(pin, argument);
-        } else if (command == "TEMP") {
-          getTemp(pin, argument);
-        } else if (command == "CFG") {
-          byte function = lowByte(argument);
-          setConfig(pin, function);
-          Serial.println("@OK<CR>");
-        }
-        datas[0][i] = "";
-        datas[1][i] = "";
-        datas[2][i] = "";
+      for (byte j = 0; j < 3; j++) {
+        data[j] = datas[j][i];  
       }
+      if (data[0] == 0) {
+        break;
+      }
+      int pin = data[1].toInt();
+      int argument = data[2].toInt();
+      String command = data[0];
+      if (command == "AI") {
+        getAnalogInput(pin, argument);
+      } else if (command == "DI") {
+        getDigitalInput(pin, argument);
+      } else if (command == "DO") {
+        setOutput(pin, argument);
+      } else if (command == "PWM") {
+        setOutputPWM(pin, argument, true);
+      } else if (command == "SERV") {
+        setOutputServo(pin, argument);
+      } else if (command == "LUX") {
+        getLux(pin, argument);
+      } else if (command == "TEMP") {
+        getTemp(pin, argument);
+      } else if (command == "CFG") {
+        byte function = lowByte(argument);
+        setConfig(pin, function);
+        sendSuccess();
+      }
+      datas[0][i] = "";
+      datas[1][i] = "";
+      datas[2][i] = "";
       isDataFinished = false;
     }
   } 
@@ -229,12 +233,12 @@ void setConfig(int pin, byte function)
     eeprom_write_byte(0, 1);
     eeprom_write_byte(pin + 1, function);
   } else if (function == 97) {
-    Serial.println("@OK REPLY " + String(eeprom_read_byte(pin + 1)));  
+    sendValue(String(eeprom_read_byte(pin + 1)));
   } else if (function == 98) {
     for (int pin = 0; pin < 70; pin++) {
       byte function = eeprom_read_byte(pin + 1);
       if (function != 255) {
-        Serial.println(pin);
+        sendValue(String(pin));
       }
     }
   } else if (function == 99) {
@@ -254,9 +258,9 @@ void getAnalogInput(int pin, int argument)
     }
     pinMode(pin, INPUT);
     int value = analogRead(pin);
-    Serial.println("@OK REPLY " + String(value) + "<CR>");
+    sendValue(String(value));
   } else {
-    Serial.println("@ER 1<CR>");
+    sendFailure(PINS_ERROR);
   }
 }
 
@@ -264,20 +268,20 @@ void getDigitalInput(int pin, int argument)
 {
   if (in_array(pin, sizeof(DI_PINS) / sizeof(DI_PINS[0]), DI_PINS)) {
     if (isI2CEnabled && is_I2C_pin(pin)) {
-      Serial.println("@ER 3<CR>");
+      sendFailure(I2C_ERROR);
     } else {
       pinMode(pin, INPUT);
       switch (digitalRead(pin)) {
         case HIGH:
-          Serial.println("@OK REPLY 1<CR>");
+          sendValue("1");
           break;
         case LOW:
-          Serial.println("@OK REPLY 0<CR>");
+          sendValue("0");
           break;
       }
     }
   } else {
-    Serial.println("@ER 1<CR>");
+    sendFailure(PINS_ERROR);
   }
 }
 
@@ -285,7 +289,7 @@ void setOutput(int pin, int argument)
 { 
   if (in_array(pin, sizeof(DO_PINS) / sizeof(DO_PINS[0]), DO_PINS)) {
     if (isI2CEnabled && is_I2C_pin(pin)) {
-      Serial.println("@ER 3<CR>");
+      sendFailure(I2C_ERROR);
     } else {
       checkServo(pin);
       pinMode(pin, OUTPUT);
@@ -297,10 +301,10 @@ void setOutput(int pin, int argument)
           digitalWrite(pin, LOW);
           break;
       }
-      Serial.println("@OK<CR>");
+      sendSuccess();
     }
   } else {
-    Serial.println("@ER 1<CR>");
+    sendFailure(PINS_ERROR);
   } 
 }
 
@@ -308,18 +312,18 @@ void setOutputPWM(int pin, int argument, bool toShowReply)
 {
   if (in_array(pin, sizeof(PWM_PINS) / sizeof(PWM_PINS[0]), PWM_PINS)) {
     if (isI2CEnabled && is_I2C_pin(pin)) {
-      Serial.println("@ER 3<CR>");
+      sendFailure(I2C_ERROR);
     } else {
       checkServo(pin);
       pinMode(pin, OUTPUT);
       analogWrite(pin, argument);
       if (toShowReply) {
-        Serial.println("@OK<CR>");
+        sendSuccess();
       }
     }
   } else {
     if (toShowReply) {
-      Serial.println("@ER 1<CR>");
+      sendFailure(PINS_ERROR);
     }
   }
 }
@@ -328,7 +332,7 @@ void setOutputServo(int pin, int argument)
 {
   if (in_array(pin, sizeof(PWM_PINS) / sizeof(PWM_PINS[0]), PWM_PINS)) {
     if (isI2CEnabled && is_I2C_pin(pin)) {
-      Serial.println("@ER 3<CR>");
+      sendFailure(I2C_ERROR);
     } else {
       int index = find_key_by_value(pin, sizeof(SERV_PINS) / sizeof(SERV_PINS[0]), SERV_PINS);
       if (index != 255) {
@@ -339,10 +343,10 @@ void setOutputServo(int pin, int argument)
         servos[servoIndex].write(argument);
         servoIndex++;
       }
-      Serial.println("@OK<CR>");
+      sendSuccess();
     }
   } else {
-    Serial.println("@ER 1<CR>");
+    sendFailure(PINS_ERROR);
   }
 }
 
@@ -362,24 +366,23 @@ void getLux(int pin, int argument)
   if(2==BH1750_Read(BH1750address))
   {
     value=((buff[0]<<8)|buff[1])/1.2;
-    
-    Serial.println("@OK REPLY " + String(value) + "<CR>");
+    sendValue(String(value));
   } else {
-    Serial.println("@ER 2<CR>");
+    sendFailure(BH1750_ADDRESS_ERROR);
   }
 }
 
 void getTemp(int pin, int argument)
 {
   if (isI2CEnabled && is_I2C_pin(pin)) {
-      Serial.println("@ER 3<CR>");
+    sendFailure(I2C_ERROR);
   } else {
     OneWire oneWire(pin);
     DallasTemperature sensors(&oneWire);
   
     sensors.requestTemperatures();
     String sensor = String(sensors.getTempCByIndex(argument),DEC);
-    Serial.println("@OK REPLY " + sensor + "<CR>");
+    sendValue(sensor);
   }
 }
 /** ----- */
@@ -416,8 +419,25 @@ void checkServo(int pin)
   }
 }
 
+/** Serial functions */
+void sendSuccess()
+{
+  Serial.println("@OK");
+}
+
+void sendFailure(int errorType)
+{
+  Serial.println("@ER " + String(errorType));
+}
+
+void sendValue(String value)
+{
+  Serial.println("@OK REPLY " + value);
+}
+
 /** functions */
-bool is_I2C_pin(int pin) {
+bool is_I2C_pin(int pin) 
+{
   int I2C_PINS[2] = {20, 21};
   if (in_array(pin, sizeof(I2C_PINS) / sizeof(I2C_PINS[0]), I2C_PINS)) {
     return true;
