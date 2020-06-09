@@ -105,35 +105,34 @@ void loop()
       for (byte j = 0; j < 3; j++) {
         data[j] = datas[j][0];  
       }
-      if (data[0] == 0) {
-        break;
+      if (data[0] != 0) {
+        int pin = data[1].toInt();
+        int argument = data[2].toInt();
+        String command = data[0];
+        if (command == "AI") {
+          getAnalogInput(pin, argument);
+        } else if (command == "DI") {
+          getDigitalInput(pin, argument);
+        } else if (command == "DO") {
+          setOutput(pin, argument);
+        } else if (command == "PWM") {
+          setOutputPWM(pin, argument, true);
+        } else if (command == "SERV") {
+          setOutputServo(pin, argument);
+        } else if (command == "LUX") {
+          getLux(pin, argument);
+        } else if (command == "TEMP") {
+          getTemp(pin, argument);
+        } else if (command == "CFG") {
+          byte function = lowByte(argument);
+          setConfig(pin, function);
+          sendSuccess();
+        }
+        datas[0][0] = "";
+        datas[1][0] = "";
+        datas[2][0] = "";
+        isDataFinished = false;
       }
-      int pin = data[1].toInt();
-      int argument = data[2].toInt();
-      String command = data[0];
-      if (command == "AI") {
-        getAnalogInput(pin, argument);
-      } else if (command == "DI") {
-        getDigitalInput(pin, argument);
-      } else if (command == "DO") {
-        setOutput(pin, argument);
-      } else if (command == "PWM") {
-        setOutputPWM(pin, argument, true);
-      } else if (command == "SERV") {
-        setOutputServo(pin, argument);
-      } else if (command == "LUX") {
-        getLux(pin, argument);
-      } else if (command == "TEMP") {
-        getTemp(pin, argument);
-      } else if (command == "CFG") {
-        byte function = lowByte(argument);
-        setConfig(pin, function);
-        sendSuccess();
-      }
-      datas[0][0] = "";
-      datas[1][0] = "";
-      datas[2][0] = "";
-      isDataFinished = false;
     }
   } 
 }
