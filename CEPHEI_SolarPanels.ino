@@ -103,7 +103,7 @@ void loop()
 
     if (isDataFinished) {
       for (byte j = 0; j < 3; j++) {
-        data[j] = datas[j][i];  
+        data[j] = datas[j][0];  
       }
       if (data[0] == 0) {
         break;
@@ -130,9 +130,9 @@ void loop()
         setConfig(pin, function);
         sendSuccess();
       }
-      datas[0][i] = "";
-      datas[1][i] = "";
-      datas[2][i] = "";
+      datas[0][0] = "";
+      datas[1][0] = "";
+      datas[2][0] = "";
       isDataFinished = false;
     }
   } 
