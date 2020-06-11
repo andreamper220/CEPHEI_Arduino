@@ -101,7 +101,8 @@ void loop()
       index = 0;
     }
 
-    if (isDataFinished) {
+    /** Buffer clearing from LF symbol */
+    if (isDataFinished && Serial.read() == 10) {
       for (byte j = 0; j < 3; j++) {
         data[j] = datas[j][0];  
       }
