@@ -135,6 +135,8 @@ void loop()
         isDataFinished = false;
       }
     }
+
+    sendBufferSize();
   } 
 }
 
@@ -422,22 +424,23 @@ void checkServo(int pin)
 /** Serial functions */
 void sendSuccess()
 {
-  Serial.print("@OK buffer size = ");
-  Serial.println(String(Serial.available()));
+  Serial.println("@OK");
 }
 
 void sendFailure(int errorType)
 {
   Serial.print("@ER ");
-  Serial.print(String(errorType));
-  Serial.print("buffer size = ");
-  Serial.println(String(Serial.available()));
+  Serial.println(String(errorType));
 }
 
 void sendValue(String value)
 {
   Serial.print("@OK REPLY ");
-  Serial.print(value);
+  Serial.println(value);
+}
+
+void sendBufferSize()
+{
   Serial.print(" buffer size = ");
   Serial.println(String(Serial.available()));
 }
