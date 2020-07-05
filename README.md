@@ -14,14 +14,11 @@ Arduino sketch for NI6001 and multiple peripheral devices interfacing
 |DI (digital read)|0-53||
 |DO (digital output)|0-53|0/1 (LOW or HIGH level)|
 |PWM (PWM output)|2-9, 10-13, 44-45|0-255 (duty)|
+|DIM (lamp dimmer output)|0-1, 3-70|0-100 (power)|
 |SERV (servo output)|2-9, 10-13, 44-45|0-180 (angle)|
 |LUX (light sensor BH1750 read)|IGNORED|0-1 (0x23 or 0x5C address)|
 |TEMP (temperature sensor DS18B20 read)|pin, configured as ONE_WIRE|0-127 (address)|
 |CFG (set config)|any|4X - according to PWM config table; <br>6 - enable I2C; <br>7 - set for temp. sensors (ONE_WIRE); <br>97 - show config  pin value; <br>98 - show non-default pins; <br>99 - clear pin value|
-
-**You can easily add command by separating of space symbol up to 5 commands!** 
-
-Example: `@PWM 11 120 LUX 1 1 TEMP 2 0#`
 
 **PWM config table** (PIN / X):
 |44, 45, 46|4, 13|2, 3, 5, 6, 7, 8, 11, 12|9, 10|
