@@ -1,6 +1,7 @@
-#include <Servo.h>
+#include <ServoTimer2.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <RBDdimmer.h>
 #include <Wire.h>
 #include <avr/eeprom.h>
 
@@ -12,19 +13,25 @@
 #define PINS_ERROR            1
 #define BH1750_ADDRESS_ERROR  2
 #define I2C_ERROR             3
+#define DIMMER_ERROR          4
+#define NOT_USED_PINS_ERROR   5
 
 byte buff[2];
-int ONE_WIRE_BUS = 2;
+int ONE_WIRE_BUS = 3;
+int DIMMER_PIN = 5;
+dimmerLamp dimmer(DIMMER_PIN);
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
-Servo servos[14];
+ServoTimer2 servos[14];
 byte servoIndex = 0;
 byte index = 0;
 byte dataIndex = 0;
 bool isReadable = false;
 bool isDataFinished = false;
 bool isI2CEnabled = false;
+bool isDimmerEnabled = false;
+bool NOT_USED_PINS[70];
 int AI_PINS[16];
 int DI_PINS[54];
 int DO_PINS[54];
@@ -110,29 +117,35 @@ void loop()
         int pin = data[1].toInt();
         int argument = data[2].toInt();
         String command = data[0];
-        if (command == "AI") {
-          getAnalogInput(pin, argument);
-        } else if (command == "DI") {
-          getDigitalInput(pin, argument);
-        } else if (command == "DO") {
-          setOutput(pin, argument);
-        } else if (command == "PWM") {
-          setOutputPWM(pin, argument, true);
-        } else if (command == "SERV") {
-          setOutputServo(pin, argument);
-        } else if (command == "LUX") {
-          getLux(pin, argument);
-        } else if (command == "TEMP") {
-          getTemp(pin, argument);
-        } else if (command == "CFG") {
-          byte function = lowByte(argument);
-          setConfig(pin, function);
-          sendSuccess();
+        if (NOT_USED_PINS[pin]) {
+          sendFailure(NOT_USED_PINS_ERROR);
+        } else {
+          if (command == "AI") {
+            getAnalogInput(pin, argument);
+          } else if (command == "DI") {
+            getDigitalInput(pin, argument);
+          } else if (command == "DO") {
+            setOutput(pin, argument);
+          } else if (command == "PWM") {
+            setOutputPWM(pin, argument, true);
+          } else if (command == "DIM") {
+            setLampPower(pin, argument);  
+          } else if (command == "SERV") {
+            setOutputServo(pin, argument);
+          } else if (command == "LUX") {
+            getLux(pin, argument);
+          } else if (command == "TEMP") {
+            getTemp(pin, argument);
+          } else if (command == "CFG") {
+            byte function = lowByte(argument);
+            setConfig(pin, function);
+            sendSuccess();
+          }
+          datas[0][0] = "";
+          datas[1][0] = "";
+          datas[2][0] = "";
+          isDataFinished = false;
         }
-        datas[0][0] = "";
-        datas[1][0] = "";
-        datas[2][0] = "";
-        isDataFinished = false;
       }
     }
 
@@ -234,6 +247,12 @@ void setConfig(int pin, byte function)
     ONE_WIRE_BUS = pin;
     eeprom_write_byte(0, 1);
     eeprom_write_byte(pin + 1, function);
+  } else if (function == 8) {
+    DIMMER_PIN = pin;
+    eeprom_write_byte(0, 1);
+    eeprom_write_byte(3, 200);
+    eeprom_write_byte(pin + 1, function);
+    isDimmerEnabled = true;  
   } else if (function == 97) {
     sendValue(String(eeprom_read_byte(pin + 1)));
   } else if (function == 98) {
@@ -246,6 +265,9 @@ void setConfig(int pin, byte function)
   } else if (function == 99) {
     eeprom_write_byte(pin + 1, 255);
     readConfig();
+  } else if (function == 200) {
+    NOT_USED_PINS[pin] = true;
+    eeprom_write_byte(pin + 1, function);
   }
 }
 
@@ -327,6 +349,18 @@ void setOutputPWM(int pin, int argument, bool toShowReply)
     if (toShowReply) {
       sendFailure(PINS_ERROR);
     }
+  }
+}
+
+void setLampPower(int pin, int argument) 
+{
+  if (!isDimmerEnabled || DIMMER_PIN != pin) {
+    sendFailure(DIMMER_ERROR);
+  } else {
+    dimmerLamp dimmer(DIMMER_PIN);
+    dimmer.begin(NORMAL_MODE, ON);
+    dimmer.setPower(argument);
+    sendSuccess();
   }
 }
 
@@ -441,7 +475,7 @@ void sendValue(String value)
 
 void sendBufferSize()
 {
-  Serial.print(" buffer size = ");
+  Serial.print("buffer size = ");
   Serial.println(String(Serial.available()));
 }
 
