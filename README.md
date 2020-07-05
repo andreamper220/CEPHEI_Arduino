@@ -18,7 +18,7 @@ Arduino sketch for NI6001 and multiple peripheral devices interfacing
 |SERV (servo output)|2-9, 10-13, 44-45|0-180 (angle)|
 |LUX (light sensor BH1750 read)|IGNORED|0-1 (0x23 or 0x5C address)|
 |TEMP (temperature sensor DS18B20 read)|pin, configured as ONE_WIRE|0-127 (address)|
-|CFG (set config)|any|4X - according to PWM config table; <br>6 - enable I2C; <br>7 - set for temp. sensors (ONE_WIRE); <br>97 - show config  pin value; <br>98 - show non-default pins; <br>99 - clear pin value|
+|CFG (set config)|any|4X - according to PWM config table; <br>6 - enable I2C; <br>7 - set for temp. sensors (ONE_WIRE); <br>8 - enable dimmer (lock 2nd pin)<br>97 - show config  pin value; <br>98 - show non-default pins; <br>99 - clear pin value|
 
 **PWM config table** (PIN / X):
 |44, 45, 46|4, 13|2, 3, 5, 6, 7, 8, 11, 12|9, 10|
@@ -53,3 +53,5 @@ Arduino sketch for NI6001 and multiple peripheral devices interfacing
 |1|pins error|try to use another pin: maybe, you set AO instead of PWM etc.|
 |2|BH1750 address error|try to set another address of lux sensor|
 |3|I2C error|try to use another pin instead of I2C pins|
+|4|dimmer error|try not to use 2nd pin|
+|5|not used pins error|this pin is marked as "non used" by CFG command|
