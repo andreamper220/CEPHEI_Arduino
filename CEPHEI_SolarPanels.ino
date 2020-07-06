@@ -471,11 +471,14 @@ void sendFailure(int errorType)
 void sendValue(String value)
 {
   Serial.print("@OK REPLY ");
+<<<<<<< HEAD
   Serial.println(value);
 }
 
 void sendBufferSize()
 {
+=======
+>>>>>>> parent of 97e05d8... fix: separate function for sending of buffer size
   Serial.print(value);
   Serial.print(" buffer size = ");
   Serial.println(String(Serial.available()));
