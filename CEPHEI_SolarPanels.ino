@@ -24,6 +24,8 @@ dimmerLamp dimmer(DIMMER_PIN);
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
+bool isCR = false;
+
 ServoTimer2 servos[14];
 byte servoIndex = 0;
 byte index = 0;
@@ -111,43 +113,48 @@ void loop()
       index = 0;
     }
 
-    /** Buffer clearing from LF symbol */
-    if (isDataFinished && Serial.read() == 13) {
-      for (byte j = 0; j < 3; j++) {
-        data[j] = datas[j][0];  
+    if (isDataFinished) {
+      if (Serial.read() == 13) {
+        isCR = true;
       }
-      if (data[0] != 0) {
-        int pin = data[1].toInt();
-        int argument = data[2].toInt();
-        String command = data[0];
-        if (NOT_USED_PINS[pin]) {
-          sendFailure(NOT_USED_PINS_ERROR);
-        } else {
-          if (command == "AI") {
-            getAnalogInput(pin, argument);
-          } else if (command == "DI") {
-            getDigitalInput(pin, argument);
-          } else if (command == "DO") {
-            setOutput(pin, argument);
-          } else if (command == "PWM") {
-            setOutputPWM(pin, argument, true);
-          } else if (command == "DIM") {
-            setLampPower(pin, argument);  
-          } else if (command == "SERV") {
-            setOutputServo(pin, argument);
-          } else if (command == "LUX") {
-            getLux(pin, argument);
-          } else if (command == "TEMP") {
-            getTemp(pin, argument);
-          } else if (command == "CFG") {
-            byte function = lowByte(argument);
-            setConfig(pin, function);
-            sendSuccess();
+      if (Serial.read() == 10 && isCR) {
+        datas[2][0].trim();
+        for (byte j = 0; j < 3; j++) {
+          data[j] = datas[j][0];  
+        }
+        if (data[0] != 0) {
+          int pin = data[1].toInt();
+          int argument = data[2].toInt();
+          String command = data[0];
+          if (NOT_USED_PINS[pin]) {
+            sendFailure(NOT_USED_PINS_ERROR);
+          } else {
+            if (command == "AI") {
+              getAnalogInput(pin, argument);
+            } else if (command == "DI") {
+              getDigitalInput(pin, argument);
+            } else if (command == "DO") {
+              setOutput(pin, argument);
+            } else if (command == "PWM") {
+              setOutputPWM(pin, argument, true);
+            } else if (command == "DIM") {
+              setLampPower(pin, argument);  
+            } else if (command == "SERV") {
+              setOutputServo(pin, argument);
+            } else if (command == "LUX") {
+              getLux(pin, argument);
+            } else if (command == "TEMP") {
+              getTemp(pin, argument);
+            } else if (command == "CFG") {
+              byte function = lowByte(argument);
+              setConfig(pin, function);
+              sendSuccess();
+            }
+            datas[0][0] = "";
+            datas[1][0] = "";
+            datas[2][0] = "";
+            isDataFinished = false;
           }
-          datas[0][0] = "";
-          datas[1][0] = "";
-          datas[2][0] = "";
-          isDataFinished = false;
         }
       }
     }
