@@ -16,6 +16,8 @@
 #define DIMMER_ERROR          4
 #define NOT_USED_PINS_ERROR   5
 
+int errorCount = 0;
+
 byte buff[2];
 int ONE_WIRE_BUS = 12;
 int DIMMER_PIN = 6;
@@ -62,12 +64,13 @@ void setup()
   for (byte i = 0; i <= 53; i++) {
     DI_PINS[i] = i;
     DO_PINS[i] = i;
-    setOutput(i, LOW);
+    setOutput(i, LOW, false);
   }
   
   if (isConfigured == 1) {
     readConfig();
   }
+  Serial.println("Init completed with " + errorCount + " errors");
 }
 
 void loop() 
@@ -118,6 +121,7 @@ void loop()
         isCR = true;
       }
       if (Serial.read() == 10 && isCR) {
+        isCR = false;
         datas[2][0].trim();
         for (byte j = 0; j < 3; j++) {
           data[j] = datas[j][0];  
@@ -319,7 +323,7 @@ void getDigitalInput(int pin, int argument)
   }
 }
 
-void setOutput(int pin, int argument)
+void setOutput(int pin, int argument, bool toShowReply)
 { 
   if (in_array(pin, sizeof(DO_PINS) / sizeof(DO_PINS[0]), DO_PINS)) {
     if (isI2CEnabled && is_I2C_pin(pin)) {
@@ -335,7 +339,9 @@ void setOutput(int pin, int argument)
           digitalWrite(pin, LOW);
           break;
       }
-      sendSuccess();
+      if (toShowReply) {
+        sendSuccess();
+      }
     }
   } else {
     sendFailure(PINS_ERROR);
@@ -475,6 +481,7 @@ void sendSuccess()
 
 void sendFailure(int errorType)
 {
+  errorCount++;
   Serial.print("@ER ");
   Serial.println(String(errorType));
 }
