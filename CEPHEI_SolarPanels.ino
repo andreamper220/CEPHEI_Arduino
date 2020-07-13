@@ -60,6 +60,7 @@ void setup()
   for (byte i = 0; i <= 53; i++) {
     DI_PINS[i] = i;
     DO_PINS[i] = i;
+    setOutput(i, LOW);
   }
   
   if (isConfigured == 1) {
