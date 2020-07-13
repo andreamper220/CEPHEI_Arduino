@@ -17,8 +17,9 @@
 #define NOT_USED_PINS_ERROR   5
 
 byte buff[2];
-int ONE_WIRE_BUS = 3;
-int DIMMER_PIN = 5;
+int ONE_WIRE_BUS = 12;
+int DIMMER_PIN = 6;
+
 dimmerLamp dimmer(DIMMER_PIN);
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
@@ -46,6 +47,7 @@ unsigned long start = 0;
 void setup() 
 {
   Wire.begin();
+  dimmer.begin(NORMAL_MODE, ON);
   Serial.begin(115200);
   byte isConfigured = eeprom_read_byte(0);
 
@@ -148,6 +150,8 @@ void loop()
         }
       }
     }
+
+    sendBufferSize();
   } 
 }
 
@@ -355,8 +359,6 @@ void setLampPower(int pin, int argument)
   if (!isDimmerEnabled || DIMMER_PIN != pin) {
     sendFailure(DIMMER_ERROR);
   } else {
-    dimmerLamp dimmer(DIMMER_PIN);
-    dimmer.begin(NORMAL_MODE, ON);
     dimmer.setPower(argument);
     sendSuccess();
   }
@@ -364,17 +366,21 @@ void setLampPower(int pin, int argument)
 
 void setOutputServo(int pin, int argument) 
 {
+  int angle = map(argument, 0, 180, 750, 2250);
   if (in_array(pin, sizeof(PWM_PINS) / sizeof(PWM_PINS[0]), PWM_PINS)) {
     if (isI2CEnabled && is_I2C_pin(pin)) {
       sendFailure(I2C_ERROR);
     } else {
       int index = find_key_by_value(pin, sizeof(SERV_PINS) / sizeof(SERV_PINS[0]), SERV_PINS);
+      sendSuccess();
       if (index != 255) {
-        servos[index].write(argument);
+        sendSuccess();
+        servos[index].write(angle);
       } else {
+        sendSuccess();
         SERV_PINS[servoIndex] = pin;
         servos[servoIndex].attach(pin);
-        servos[servoIndex].write(argument);
+        servos[servoIndex].write(angle);
         servoIndex++;
       }
       sendSuccess();
@@ -456,34 +462,24 @@ void checkServo(int pin)
 /** Serial functions */
 void sendSuccess()
 {
-  Serial.print("@OK buffer size = ");
-  Serial.println(String(Serial.available()));
+  Serial.println("@OK");
 }
 
 void sendFailure(int errorType)
 {
   Serial.print("@ER ");
-  Serial.print(String(errorType));
-  Serial.print("buffer size = ");
-  Serial.println(String(Serial.available()));
+  Serial.println(String(errorType));
 }
 
 void sendValue(String value)
 {
   Serial.print("@OK REPLY ");
-<<<<<<< HEAD
-<<<<<<< HEAD
   Serial.println(value);
 }
 
 void sendBufferSize()
 {
-=======
->>>>>>> parent of 97e05d8... fix: separate function for sending of buffer size
-=======
->>>>>>> parent of 97e05d8... fix: separate function for sending of buffer size
-  Serial.print(value);
-  Serial.print(" buffer size = ");
+  Serial.print("buffer size = ");
   Serial.println(String(Serial.available()));
 }
 
