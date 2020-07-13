@@ -70,7 +70,7 @@ void setup()
   if (isConfigured == 1) {
     readConfig();
   }
-  Serial.println("Init completed with " + errorCount + " errors");
+  Serial.print("Init completed with " + String(errorCount) + " errors");
 }
 
 void loop() 
@@ -138,7 +138,7 @@ void loop()
             } else if (command == "DI") {
               getDigitalInput(pin, argument);
             } else if (command == "DO") {
-              setOutput(pin, argument);
+              setOutput(pin, argument, true);
             } else if (command == "PWM") {
               setOutputPWM(pin, argument, true);
             } else if (command == "DIM") {
