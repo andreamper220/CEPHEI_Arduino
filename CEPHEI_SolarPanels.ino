@@ -121,7 +121,6 @@ void loop()
         isCR = true;
       }
       if (Serial.read() == 10 && isCR) {
-        isCR = false;
         datas[2][0].trim();
         for (byte j = 0; j < 3; j++) {
           data[j] = datas[j][0];  
@@ -157,13 +156,14 @@ void loop()
             datas[0][0] = "";
             datas[1][0] = "";
             datas[2][0] = "";
+            isCR = false;
             isDataFinished = false;
           }
         }
       }
     }
 
-    sendBufferSize();
+//    sendBufferSize();
   } 
 }
 
