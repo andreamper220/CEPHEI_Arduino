@@ -70,7 +70,7 @@ void setup()
   if (isConfigured == 1) {
     readConfig();
   }
-  Serial.print("Init completed with " + String(errorCount) + " errors");
+  Serial.println("Init completed with " + String(errorCount) + " errors");
 }
 
 void loop() 
