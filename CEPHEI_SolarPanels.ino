@@ -59,9 +59,12 @@ void setup()
     AI_PINS[i - 54] = i;
   }
   for (byte i = 0; i <= 53; i++) {
-    DI_PINS[i] = i;
-    DO_PINS[i] = i;
-//    setOutput(i, LOW, false);
+
+    if (i != DIMMER_PIN) {
+      DI_PINS[i] = i;
+      DO_PINS[i] = i;
+//      setOutput(i, LOW, false);
+    }
   }
   
   if (isConfigured == 1) {
