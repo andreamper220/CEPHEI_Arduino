@@ -6,7 +6,7 @@ Arduino sketch for NI6001 and multiple peripheral devices interfacing
 
 ### Master Request:
 
-`@CMD PIN ARG#`, where
+`@CMD PIN ARG#<CR><LF>`, where
 
 |**CMD**|**PIN**|**ARG**|
 |---|---|---|
@@ -35,15 +35,15 @@ Arduino sketch for NI6001 and multiple peripheral devices interfacing
 
 * without data:
 
-`@OK<CR>`
+`@OK<CR><LF>`
 
 * with data:
 
-`@OK REPLY XXX.XXX<CR>`
+`@OK REPLY XXX.XXX<CR><LF>`
 
 * with error:
 
-`@ER X<CR>`
+`@ER X<CR><LF>`
 
 ### ERROR types:
 
@@ -55,3 +55,4 @@ Arduino sketch for NI6001 and multiple peripheral devices interfacing
 |3|I2C error|try to use another pin instead of I2C pins|
 |4|dimmer error|try not to use 2nd pin|
 |5|not used pins error|this pin is marked as "non used" by CFG command|
+|6|angle error|try to resend servo command|
