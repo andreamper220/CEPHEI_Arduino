@@ -5,37 +5,8 @@ void readConfig() {
   }
 }
 
-void setConfig(int pin, byte function)
-{
-//  if (function == 10 || function == 11) {
-//    int analogPin = pin;
-//    switch(function) {
-//      case 10:
-//        analogReference(DEFAULT);
-//      case 11:
-//        analogReference(EXTERNAL);
-//    }
-//    pinMode(analogPin, INPUT);
-//    eeprom_write_byte(0, 1);
-//    eeprom_write_byte(pin + 1, function);
-//  } else if (function == 2) {
-//    pinMode(pin, INPUT);
-//    eeprom_write_byte(0, 1);
-//    eeprom_write_byte(pin + 1, function);
-//  } else if (function == 3) {
-//    pinMode(pin, OUTPUT);
-//    switch (function % 30) {
-//      case 1:
-//        digitalWrite(pin, HIGH);
-//        break;
-//      case 0:
-//        digitalWrite(pin, LOW);
-//        break;
-//    }
-//    eeprom_write_byte(0, 1);
-//    eeprom_write_byte(pin + 1, function);
-//  } else 
-if (function > 40 && function <= 47) {
+void setConfig(int pin, byte function) {
+  if (function > 40 && function <= 47) {
     byte frequency = function % 40;                                                                                                     
     pinMode(pin, OUTPUT);
     switch (pin) {
