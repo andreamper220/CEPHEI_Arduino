@@ -62,9 +62,11 @@ void setup()
     AI_PINS[i - 54] = i;
   }
   for (byte i = 0; i <= 53; i++) {
-    DI_PINS[i] = i;
-    DO_PINS[i] = i;
-    setOutput(i, LOW, false);
+    if (i != DIMMER_PIN) {
+      DI_PINS[i] = i;
+      DO_PINS[i] = i;
+//      setOutput(i, LOW, false);
+    }
   }
   
   if (isConfigured == 1) {
@@ -374,6 +376,7 @@ void setLampPower(int pin, int argument)
     sendFailure(DIMMER_ERROR);
   } else {
     dimmer.setPower(argument);
+    Serial.println(String(dimmer.getPower()));
     sendSuccess();
   }
 }
@@ -385,18 +388,21 @@ void setOutputServo(int pin, int argument)
     if (isI2CEnabled && is_I2C_pin(pin)) {
       sendFailure(I2C_ERROR);
     } else {
-      int index = find_key_by_value(pin, sizeof(SERV_PINS) / sizeof(SERV_PINS[0]), SERV_PINS);
-      sendSuccess();
-      if (index != 255) {
-        sendSuccess();
-        servos[index].write(angle);
-      } else {
-        sendSuccess();
-        SERV_PINS[servoIndex] = pin;
-        servos[servoIndex].attach(pin);
-        servos[servoIndex].write(angle);
-        servoIndex++;
-      }
+//      int index = find_key_by_value(pin, sizeof(SERV_PINS) / sizeof(SERV_PINS[0]), SERV_PINS);
+//      if (index != 255) {
+//        servos[index].write(angle);
+//      } else {
+//        SERV_PINS[servoIndex] = pin;
+//        servos[servoIndex].attach(pin);
+//        servos[servoIndex].write(angle);
+//        delay(1000);
+//        servos[servoIndex].detach();
+//        servoIndex++;
+//      }   
+      servos[0].attach(pin);
+      servos[0].write(angle);
+      delay(1000);
+      servos[0].detach();  
       sendSuccess();
     }
   } else {
