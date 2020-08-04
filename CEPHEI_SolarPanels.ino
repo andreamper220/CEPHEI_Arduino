@@ -143,7 +143,11 @@ void loop()
             } else if (command == "DIM") {
               setLampPower(pin, argument);  
             } else if (command == "SERV") {
-              setOutputServo(pin, argument);
+              if (data[2] == "?") {
+                getServoAngle(pin);
+              } else {
+                setOutputServo(pin, argument);
+              }
             } else if (command == "LUX") {
               getLux(pin, argument);
             } else if (command == "TEMP") {
