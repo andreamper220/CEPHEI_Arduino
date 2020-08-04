@@ -63,6 +63,11 @@ void setOutput(int pin, int argument, bool toShowReply)
   } 
 }
 
+void getPWM(int pin)
+{
+  
+}
+
 void setOutputPWM(int pin, int argument, bool toShowReply)
 {
   if (in_array(pin, sizeof(PWM_PINS) / sizeof(PWM_PINS[0]), PWM_PINS)) {
