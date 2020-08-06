@@ -46,6 +46,8 @@ void setConfig(int pin, byte function) {
     eeprom_write_byte(pin + 1, function);
   } else if (function == 6) {
     isI2CEnabled = true;
+    eeprom_write_byte(0, 1);
+    eeprom_write_byte(pin + 1, function);
   } else if (function == 7) {
     ONE_WIRE_BUS = pin;
     eeprom_write_byte(0, 1);
@@ -71,5 +73,7 @@ void setConfig(int pin, byte function) {
   } else if (function == 200) {
     NOT_USED_PINS[pin] = true;
     eeprom_write_byte(pin + 1, function);
+  } else {
+    NOT_USED_PINS[pin] = false;
   }
 }

@@ -40,7 +40,7 @@ bool isDimmerEnabled = false;
 bool NOT_USED_PINS[70];
 int AI_PINS[16];
 int DI_PINS[54];
-int DO_PINS[54];
+int DO_PINS[70];
 int PWM_PINS[14] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 44, 45};
 String dataString;
 String datas[3][1];
@@ -49,7 +49,7 @@ String data[3];
 unsigned long start = 0;
 
 void setup() 
-{
+{  
   Wire.begin();
   dimmer.begin(NORMAL_MODE, ON);
   Serial.begin(115200);
@@ -57,9 +57,9 @@ void setup()
 
   for (byte i = 54; i <= 70; i++) {
     AI_PINS[i - 54] = i;
+    DO_PINS[i] = i;
   }
   for (byte i = 0; i <= 53; i++) {
-
     if (i != DIMMER_PIN) {
       DI_PINS[i] = i;
       DO_PINS[i] = i;
@@ -70,7 +70,9 @@ void setup()
   if (isConfigured == 1) {
     readConfig();
   }
-  Serial.println("Init completed with " + String(errorCount) + " errors");
+  // for Serial
+  eeprom_write_byte(1, 200);
+  eeprom_write_byte(2, 200);
 }
 
 void loop() 
@@ -129,7 +131,7 @@ void loop()
           int pin = data[1].toInt();
           int argument = data[2].toInt();
           String command = data[0];
-          if (NOT_USED_PINS[pin]) {
+          if (NOT_USED_PINS[pin] == true) {
             sendFailure(NOT_USED_PINS_ERROR);
           } else {
             if (command == "AI") {

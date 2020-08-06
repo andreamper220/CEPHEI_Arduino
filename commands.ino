@@ -104,7 +104,7 @@ void setOutputServo(int pin, int argument)
 {
   int angle = map(argument, 0, 180, 750, 2250);
   if (in_array(pin, sizeof(PWM_PINS) / sizeof(PWM_PINS[0]), PWM_PINS)) {
-    if (angle >= 0 && angle <= 180) {
+    if (argument >= 0 && argument <= 180) {
       if (isI2CEnabled && is_I2C_pin(pin)) {
         sendFailure(I2C_ERROR);
       } else {
