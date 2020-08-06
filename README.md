@@ -57,3 +57,4 @@ Arduino sketch for NI6001 and multiple peripheral devices interfacing
 |5|not used pins error|this pin is marked as "non used" by CFG command|
 |6|angle error|try to resend servo command|
 |7|range error|enter correct argument range|
+|8|serial error|incorrect command|
