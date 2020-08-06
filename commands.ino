@@ -63,6 +63,11 @@ void setOutput(int pin, int argument, bool toShowReply)
   } 
 }
 
+void getPWM(int pin)
+{
+  
+}
+
 void setOutputPWM(int pin, int argument, bool toShowReply)
 {
   if (in_array(pin, sizeof(PWM_PINS) / sizeof(PWM_PINS[0]), PWM_PINS)) {
@@ -100,6 +105,17 @@ void setLampPower(int pin, int argument)
   }
 }
 
+void getServoAngle(int pin) 
+{
+  if (in_array(pin, sizeof(PWM_PINS) / sizeof(PWM_PINS[0]), PWM_PINS)) {
+    servo.attach(pin);
+    sendValue(String(servo.read()));
+    servo.detach();
+  } else {
+    sendFailure(PINS_ERROR);
+  }
+}
+
 void setOutputServo(int pin, int argument) 
 {
   int angle = map(argument, 0, 180, 750, 2250);
@@ -111,12 +127,12 @@ void setOutputServo(int pin, int argument)
         servo.attach(pin);
         servo.write(angle);
         delay(2000);
-        servo.detach();
         if (round(servo.read()) == angle) {
           sendSuccess();
         } else {
           sendFailure(ANGLE_ERROR);
         }
+        servo.detach();
       }
     } else {
       sendFailure(RANGE_ERROR);

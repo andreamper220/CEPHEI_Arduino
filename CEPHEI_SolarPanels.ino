@@ -63,9 +63,12 @@ void setup()
     if (i != DIMMER_PIN) {
       DI_PINS[i] = i;
       DO_PINS[i] = i;
-//      setOutput(i, LOW, false);
+    }
+    if (in_array(i, sizeof(PWM_PINS) / sizeof(PWM_PINS[0]), PWM_PINS)) {
+      setOutputPWM(i, 0, false);
     }
   }
+  dimmer.setPower(2);
   
   if (isConfigured == 1) {
     readConfig();
@@ -141,11 +144,19 @@ void loop()
             } else if (command == "DO") {
               setOutput(pin, argument, true);
             } else if (command == "PWM") {
-              setOutputPWM(pin, argument, true);
+              if (data[2] == "?") {
+                getPWM(pin);
+              } else {
+                setOutputPWM(pin, argument, true); 
+              }
             } else if (command == "DIM") {
               setLampPower(pin, argument);  
             } else if (command == "SERV") {
-              setOutputServo(pin, argument);
+              if (data[2] == "?") {
+                getServoAngle(pin);
+              } else {
+                setOutputServo(pin, argument);
+              }
             } else if (command == "LUX") {
               getLux(pin, argument);
             } else if (command == "TEMP") {
