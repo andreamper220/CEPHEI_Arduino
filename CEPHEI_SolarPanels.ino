@@ -21,6 +21,8 @@
 
 int errorCount = 0;
 
+String customStamp = "";
+
 byte buff[2];
 int ONE_WIRE_BUS = 12;
 int DIMMER_PIN = 6;
@@ -150,11 +152,7 @@ void loop()
               } else if (command == "DO") {
                 setOutput(pin, argument, true);
               } else if (command == "PWM") {
-                if (data[2] == "?") {
-                  getPWM(pin);
-                } else {
-                  setOutputPWM(pin, argument, true); 
-                }
+                setOutputPWM(pin, argument, true); 
               } else if (command == "DIM") {
                 setLampPower(pin, argument);  
               } else if (command == "SERV") {
@@ -167,6 +165,12 @@ void loop()
                 getLux(pin, argument);
               } else if (command == "TEMP") {
                 getTemp(pin, argument);
+              } else if (command == "TIME") {
+                if (data[2] == "?") {
+                  getCustomStamp();
+                } else {
+                  setCustomStamp(data[2]);
+                }
               } else if (command == "CFG") {
                 byte function = lowByte(argument);
                 setConfig(pin, function);
