@@ -44,7 +44,7 @@ bool NOT_USED_PINS[70];
 int AI_PINS[16];
 int DI_PINS[54];
 int DO_PINS[70];
-int PWM_PINS[14] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 44, 45};
+int PWM_PINS[9] = {3, 4, 5, 6, 7, 8, 11, 12, 13};
 String dataString;
 String datas[3][1];
 String data[3];
@@ -57,6 +57,13 @@ void setup()
   dimmer.begin(NORMAL_MODE, ON);
   Serial.begin(115200);
   byte isConfigured = eeprom_read_byte(0);
+  
+  if (isConfigured == 1) {
+    readConfig();
+  }
+  // for Serial
+  eeprom_write_byte(1, 200);
+  eeprom_write_byte(2, 200);
 
   for (byte i = 54; i <= 70; i++) {
     AI_PINS[i - 54] = i;
@@ -66,19 +73,10 @@ void setup()
     if (i != DIMMER_PIN) {
       DI_PINS[i] = i;
       DO_PINS[i] = i;
-    }
-    if (in_array(i, sizeof(PWM_PINS) / sizeof(PWM_PINS[0]), PWM_PINS)) {
       setOutputPWM(i, 0, false);
     }
   }
   dimmer.setPower(2);
-  
-  if (isConfigured == 1) {
-    readConfig();
-  }
-  // for Serial
-  eeprom_write_byte(1, 200);
-  eeprom_write_byte(2, 200);
 }
 
 void loop() 
