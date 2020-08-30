@@ -104,7 +104,7 @@ void getServoAngle(int pin)
 {
   if (in_array(pin, sizeof(PWM_PINS) / sizeof(PWM_PINS[0]), PWM_PINS)) {
     servo.attach(pin);
-    sendValue(String(servo.read()));
+    sendValue(String(map(servo.read(), 750, 2250, 0, 180)));
     servo.detach();
   } else {
     sendFailure(PINS_ERROR);
