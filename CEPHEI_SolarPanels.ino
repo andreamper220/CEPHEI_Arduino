@@ -32,6 +32,8 @@ OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
 bool isCR = false;
+bool isLF = false;
+bool isASymbol = false;
 
 ServoTimer2 servo;
 byte index = 0;
@@ -98,10 +100,9 @@ void loop()
 
   if (Serial.available() > 0) {  
     if (Serial.read() == 64 && !isReadable) {
+      isASymbol = true;
       isReadable = true;
-    } else {
-      sendFailure(SERIAL_ERROR);
-    }
+    } 
 
     if (isReadable) {
       dataString = Serial.readStringUntil('#');
@@ -123,7 +124,8 @@ void loop()
         dataChar = strtok(NULL, " ");
         index++;
       }
-      if (index < 4) {
+      if (index < 3) {
+        sendValue(String(index));
         sendFailure(SERIAL_ERROR);
       }
       index = 0;
@@ -132,62 +134,65 @@ void loop()
     if (isDataFinished) {
       if (Serial.read() == 13) {
         isCR = true;
-      } else if (Serial.read() == 10) {
-        if (isCR) {
-          datas[2][0].trim();
-          for (byte j = 0; j < 3; j++) {
-            data[j] = datas[j][0];  
-          }
-          if (data[0] != 0) {
-            int pin = data[1].toInt();
-            int argument = data[2].toInt();
-            String command = data[0];
-            if (NOT_USED_PINS[pin] == true) {
-              sendFailure(NOT_USED_PINS_ERROR);
-            } else {
-              if (command == "AI") {
-                getAnalogInput(pin, argument);
-              } else if (command == "DI") {
-                getDigitalInput(pin, argument);
-              } else if (command == "DO") {
-                setOutput(pin, argument, true);
-              } else if (command == "PWM") {
-                setOutputPWM(pin, argument, true); 
-              } else if (command == "DIM") {
-                setLampPower(pin, argument);  
-              } else if (command == "SERV") {
-                if (data[2] == "?") {
-                  getServoAngle(pin);
-                } else {
-                  setOutputServo(pin, argument);
-                }
-              } else if (command == "LUX") {
-                getLux(pin, argument);
-              } else if (command == "TEMP") {
-                getTemp(pin, argument);
-              } else if (command == "TIME") {
-                if (data[2] == "?") {
-                  getCustomStamp();
-                } else {
-                  setCustomStamp(data[2]);
-                }
-              } else if (command == "CFG") {
-                byte function = lowByte(argument);
-                setConfig(pin, function);
-                sendSuccess();
-              }
-              datas[0][0] = "";
-              datas[1][0] = "";
-              datas[2][0] = "";
-              isCR = false;
-              isDataFinished = false;
-            }
-          }
-        } else {
-          sendFailure(SERIAL_ERROR);           
+      };
+      if (Serial.read() == 10 && isCR) {
+        isLF = true;
+        datas[2][0].trim();
+        for (byte j = 0; j < 3; j++) {
+          data[j] = datas[j][0];  
         }
-      } else {
+        if (data[0] != 0) {
+          int pin = data[1].toInt();
+          int argument = data[2].toInt();
+          String command = data[0];
+          if (NOT_USED_PINS[pin] == true) {
+            sendFailure(NOT_USED_PINS_ERROR);
+          } else {
+            if (command == "AI") {
+              getAnalogInput(pin, argument);
+            } else if (command == "DI") {
+              getDigitalInput(pin, argument);
+            } else if (command == "DO") {
+              setOutput(pin, argument, true);
+            } else if (command == "PWM") {
+              setOutputPWM(pin, argument, true); 
+            } else if (command == "DIM") {
+              setLampPower(pin, argument);  
+            } else if (command == "SERV") {
+              if (data[2] == "?") {
+                getServoAngle(pin);
+              } else {
+                setOutputServo(pin, argument);
+              }
+            } else if (command == "LUX") {
+              getLux(pin, argument);
+            } else if (command == "TEMP") {
+              getTemp(pin, argument);
+            } else if (command == "TIME") {
+              if (data[2] == "?") {
+                getCustomStamp();
+              } else {
+                setCustomStamp(data[2]);
+              }
+            } else if (command == "CFG") {
+              byte function = lowByte(argument);
+              setConfig(pin, function);
+              sendSuccess();
+            }
+            datas[0][0] = "";
+            datas[1][0] = "";
+            datas[2][0] = "";
+            isDataFinished = false;
+          }
+        }
+      }
+
+      if (!(isCR && isLF && isASymbol)) {
         sendFailure(SERIAL_ERROR);
+      } else {
+        isCR = false;
+        isLF = false;
+        isASymbol = false;
       }
     }
 
