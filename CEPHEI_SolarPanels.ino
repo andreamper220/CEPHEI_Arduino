@@ -32,8 +32,8 @@ OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
 bool isCR = false;
-bool isLF = false;
-bool isASymbol = false;
+bool isSuccess = false;
+bool isSerial = false;
 
 ServoTimer2 servo;
 byte index = 0;
@@ -96,7 +96,8 @@ void loop()
     }
   }
 
-  if (Serial.available() > 0) {  
+  if (Serial.available() > 0) {
+    isSerial = true;
     if (Serial.read() == 64 && !isReadable) {
       isReadable = true;
     }
@@ -110,16 +111,17 @@ void loop()
       char* dataChar = strtok(dataCharStar, " ");
       
       while (dataChar != NULL) {
+        byte multiplier = (index / 3 > 1) ? index / 3 : 1;
+        datas[index % (3 * multiplier)][index / 3] = dataChar;
+        dataChar = strtok(NULL, " ");
+        index++;
+        
         if (index > 3) {
           sendFailure(COMMANDS_COUNT_ERROR);
           isDataFinished = false;
         } else {
           isDataFinished = true;
         }
-        byte multiplier = (index / 3 > 1) ? index / 3 : 1;
-        datas[index % (3 * multiplier)][index / 3] = dataChar;
-        dataChar = strtok(NULL, " ");
-        index++;
       }
       index = 0;
     }
@@ -183,4 +185,11 @@ void loop()
 
 //    sendBufferSize();
   } 
+
+  if (!isSuccess && isSerial) {
+    sendFailure(SERIAL_ERROR);
+  }
+
+  isSerial = false;
+  isSuccess = false;
 }

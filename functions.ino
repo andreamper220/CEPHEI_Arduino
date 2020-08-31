@@ -1,7 +1,22 @@
 /** Serial functions */
+bool isValidRequest(String serialData)
+{
+  char dataLength = serialData.length();
+  if (serialData.charAt(0) != 64 
+    || serialData.lastIndexOf(10) != dataLength - 1
+    || serialData.lastIndexOf(13) != dataLength - 2
+    || serialData.lastIndexOf('#') != dataLength - 3
+  ) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
 void sendSuccess()
 {
   Serial.println("@OK");
+  isSuccess = true;
 }
 
 void sendFailure(int errorType)
