@@ -147,11 +147,7 @@ void loop()
             } else if (command == "DO") {
               setOutput(pin, argument, true);
             } else if (command == "PWM") {
-              if (data[2] == "?") {
-                getPWM(pin);
-              } else {
-                setOutputPWM(pin, argument, true); 
-              }
+              setOutputPWM(pin, argument, true); 
             } else if (command == "DIM") {
               setLampPower(pin, argument);  
             } else if (command == "SERV") {
@@ -168,6 +164,12 @@ void loop()
               byte function = lowByte(argument);
               setConfig(pin, function);
               sendSuccess();
+            } else if (command == "TIME") {
+              if (data[2] == "?") {
+                getCustomStamp();
+              } else {
+                setCustomStamp(data[2]);
+              }
             }
             datas[0][0] = "";
             datas[1][0] = "";
