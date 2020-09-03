@@ -32,8 +32,9 @@ OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
 bool isCR = false;
-bool isSuccess = false;
 bool isSerial = false;
+bool isSuccess = false;
+bool isFailure = false;
 
 ServoTimer2 servo;
 byte index = 0;
@@ -83,6 +84,10 @@ void setup()
 
 void loop() 
 {
+  isSerial = false;
+  isSuccess = false;
+  isFailure = false;
+    
   OneWire oneWire(ONE_WIRE_BUS);
   DallasTemperature sensors(&oneWire);
   sensors.requestTemperatures();
@@ -97,15 +102,18 @@ void loop()
   }
 
   if (Serial.available() > 0) {
-    isSerial = true;
+    isSerial = true; 
+    
     if (Serial.read() == 64 && !isReadable) {
       isReadable = true;
     }
 
     if (isReadable) {
       dataString = Serial.readStringUntil('#');
-      if (dataString != "") {
+      if (dataString != "" && dataString.lastIndexOf(32) != dataString.length() - 1) {
         isReadable = false;
+      } else {
+        sendFailure(SERIAL_ERROR);
       }
       char* dataCharStar = dataString.c_str();
       char* dataChar = strtok(dataCharStar, " ");
@@ -115,18 +123,19 @@ void loop()
         datas[index % (3 * multiplier)][index / 3] = dataChar;
         dataChar = strtok(NULL, " ");
         index++;
-        
-        if (index > 3) {
-          sendFailure(COMMANDS_COUNT_ERROR);
-          isDataFinished = false;
-        } else {
-          isDataFinished = true;
-        }
       }
+        
+      if (index != 3) {
+        sendFailure(COMMANDS_COUNT_ERROR);
+        isDataFinished = false;
+      } else {
+        isDataFinished = true;
+      }
+      
       index = 0;
     }
 
-    if (isDataFinished) {
+    if (isDataFinished && !isFailure) {
       if (Serial.read() == 13) {
         isCR = true;
       }
@@ -184,12 +193,10 @@ void loop()
     }
 
 //    sendBufferSize();
-  } 
-
-  if (!isSuccess && isSerial) {
-    sendFailure(SERIAL_ERROR);
+    while (Serial.available()) { Serial.read(); delay(5); }
   }
 
-  isSerial = false;
-  isSuccess = false;
+  if (isSerial && !isSuccess) {
+    sendFailure(SERIAL_ERROR);
+  }
 }

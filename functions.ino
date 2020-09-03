@@ -21,15 +21,19 @@ void sendSuccess()
 
 void sendFailure(int errorType)
 {
-  errorCount++;
-  Serial.print("@ER ");
-  Serial.println(String(errorType));
+  if (!isFailure) {
+    errorCount++;
+    Serial.print("@ER ");
+    Serial.println(String(errorType));
+  }
+  isFailure = true;
 }
 
 void sendValue(String value)
 {
   Serial.print("@OK REPLY ");
   Serial.println(value);
+  isSuccess = true;
 }
 
 void sendBufferSize()
