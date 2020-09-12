@@ -18,7 +18,7 @@ Arduino sketch for multiple peripheral devices interfacing
 |SERV (servo output / angle value)|2-9, 10-13, 44-45|0-180 (angle) / ? (for value getting)|
 |LUX (light sensor BH1750 read)|IGNORED|0-1 (0x23 or 0x5C address)|
 |TEMP (temperature sensor DS18B20 read)|pin, configured as ONE_WIRE|0-127 (address)|
-|TIME (custom stamp for arduino reset checking)|CUSTOM_STRING / ?|
+|TIME (custom stamp for arduino reset checking)|IGNORED|CUSTOM_STRING / ?|
 |CFG (set config)|any|4X - according to PWM config table; <br>6 - enable I2C; <br>7 - set for temp. sensors (ONE_WIRE); <br>8 - enable dimmer (lock 2nd pin)<br>97 - show config  pin value; <br>98 - show non-default pins; <br>99 - clear pin value|
 
 **PWM config table** (PIN / X):
