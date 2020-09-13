@@ -24,7 +24,7 @@ int errorCount = 0;
 String customStamp = "";
 
 byte buff[2];
-int ONE_WIRE_BUS = 12;
+int ONE_WIRE_BUS = 8;
 int DIMMER_PIN = 6;
 
 dimmerLamp dimmer(DIMMER_PIN);
@@ -47,7 +47,7 @@ bool NOT_USED_PINS[70];
 int AI_PINS[16];
 int DI_PINS[54];
 int DO_PINS[70];
-int PWM_PINS[9] = {3, 4, 5, 6, 7, 8, 11, 12, 13};
+int PWM_PINS[10] = {3, 4, 5, 6, 7, 8, 9, 11, 12, 13};
 String dataString;
 String datas[3][1];
 String data[3];
