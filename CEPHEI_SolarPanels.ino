@@ -97,7 +97,7 @@ void loop()
     float temperature = sensors.getTempCByIndex(i);
     if (temperature > CRITICAL_TEMPERATURE || temperature < 0.0) {
       for (byte j = 0; j < (sizeof(PWM_PINS) / sizeof(PWM_PINS[0])); j++) {
-        if (!in_array(pin, sizeof(COOLER_PINS) / sizeof(COOLER_PINS[0]), COOLER_PINS) && pin != DIMMER_PIN) {
+        if (!in_array(PWM_PINS[j], sizeof(COOLER_PINS) / sizeof(COOLER_PINS[0]), COOLER_PINS) && PWM_PINS[j] != DIMMER_PIN) {
           setOutputPWM(PWM_PINS[j], 0, false);
         }
       }
