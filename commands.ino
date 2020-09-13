@@ -88,7 +88,7 @@ void setOutputPWM(int pin, int argument, bool toShowReply)
 
 void setLampPower(int pin, int argument) 
 {
-  if (argument >= 0 && argument <= 100) {
+  if (argument >= 0 && argument <= 99) {
     if (!isDimmerEnabled || DIMMER_PIN != pin) {
       sendFailure(DIMMER_ERROR);
     } else {
