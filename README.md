@@ -1,6 +1,6 @@
 # CEPHEI_SolarPanels
 
-Arduino sketch for NI6001 and multiple peripheral devices interfacing 
+Arduino sketch for multiple peripheral devices interfacing 
 
 ## Protocol description
 
@@ -15,9 +15,10 @@ Arduino sketch for NI6001 and multiple peripheral devices interfacing
 |DO (digital output)|0-53|0/1 (LOW or HIGH level)|
 |PWM (PWM output)|2-9, 10-13, 44-45|0-255 (duty)|
 |DIM (lamp dimmer output)|0-1, 3-70|0-100 (power)|
-|SERV (servo output)|2-9, 10-13, 44-45|0-180 (angle)|
+|SERV (servo output / angle value)|2-9, 10-13, 44-45|0-180 (angle) / ? (for value getting)|
 |LUX (light sensor BH1750 read)|IGNORED|0-1 (0x23 or 0x5C address)|
 |TEMP (temperature sensor DS18B20 read)|pin, configured as ONE_WIRE|0-127 (address)|
+|TIME (custom stamp for arduino reset checking)|IGNORED|CUSTOM_STRING / ?|
 |CFG (set config)|any|4X - according to PWM config table; <br>6 - enable I2C; <br>7 - set for temp. sensors (ONE_WIRE); <br>8 - enable dimmer (lock 2nd pin)<br>97 - show config  pin value; <br>98 - show non-default pins; <br>99 - clear pin value|
 
 **PWM config table** (PIN / X):
@@ -33,11 +34,11 @@ Arduino sketch for NI6001 and multiple peripheral devices interfacing
 
 ### Slave Reply:
 
-* without data:
+* success without data:
 
 `@OK<CR><LF>`
 
-* with data:
+* success with data:
 
 `@OK REPLY XXX.XXX<CR><LF>`
 
@@ -49,7 +50,7 @@ Arduino sketch for NI6001 and multiple peripheral devices interfacing
 
 |**CODE**|**DESCRIPTION**|**SOLUTION**|
 |---|---|---|
-|0|commands amount error|decrease commands count|
+|0|parameters amount error|decrease parameters count (divided by spaces)|
 |1|pins error|try to use another pin: maybe, you set AO instead of PWM etc.|
 |2|BH1750 address error|try to set another address of lux sensor|
 |3|I2C error|try to use another pin instead of I2C pins|
@@ -57,4 +58,4 @@ Arduino sketch for NI6001 and multiple peripheral devices interfacing
 |5|not used pins error|this pin is marked as "non used" by CFG command|
 |6|angle error|try to resend servo command|
 |7|range error|enter correct argument range|
-|8|serial error|incorrect command|
+|8|serial error|incorrect command syntax|

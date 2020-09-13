@@ -48,6 +48,7 @@ int AI_PINS[16];
 int DI_PINS[54];
 int DO_PINS[70];
 int PWM_PINS[10] = {3, 4, 5, 6, 7, 8, 9, 11, 12, 13};
+int COOLER_PINS[2] = {11, 12};
 String dataString;
 String datas[3][1];
 String data[3];
@@ -73,9 +74,9 @@ void setup()
     DO_PINS[i] = i;
   }
   for (byte i = 0; i <= 53; i++) {
+    DO_PINS[i] = i;
     if (i != DIMMER_PIN) {
       DI_PINS[i] = i;
-      DO_PINS[i] = i;
       setOutputPWM(i, 0, false);
     }
   }
@@ -96,8 +97,11 @@ void loop()
     float temperature = sensors.getTempCByIndex(i);
     if (temperature > CRITICAL_TEMPERATURE || temperature < 0.0) {
       for (byte j = 0; j < (sizeof(PWM_PINS) / sizeof(PWM_PINS[0])); j++) {
-        setOutputPWM(PWM_PINS[j], 0, false);
+        if (!in_array(pin, sizeof(COOLER_PINS) / sizeof(COOLER_PINS[0]), COOLER_PINS) && pin != DIMMER_PIN) {
+          setOutputPWM(PWM_PINS[j], 0, false);
+        }
       }
+      dimmer.setPower(2);
     }
   }
 
@@ -106,11 +110,13 @@ void loop()
     
     if (Serial.read() == 64 && !isReadable) {
       isReadable = true;
+    } else {
+      sendFailure(SERIAL_ERROR);
     }
 
     if (isReadable) {
       dataString = Serial.readStringUntil('#');
-      if (dataString != "" && dataString.lastIndexOf(32) != dataString.length() - 1) {
+      if (dataString != "" && dataString.lastIndexOf(32) != dataString.length() - 1 && dataString.indexOf(32) != 0) {
         isReadable = false;
       } else {
         sendFailure(SERIAL_ERROR);
