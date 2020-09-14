@@ -1,4 +1,4 @@
-# CEPHEI_SolarPanels
+# CEPHEI_Arduino
 
 Arduino sketch for multiple peripheral devices interfacing 
 
