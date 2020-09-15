@@ -13,7 +13,7 @@ It allows to:
 * interface with 1-Wire sensors (e.g. DS18B20 temperature sensor)
 * interface with i2c sensors (e.g. BH1750 light sensor)
 
-![alt text](https://github.com/andreamper220/CEPHEI_Arduino/blob/master/MEGA_wiring.png?raw=true)
+![alt text](https://github.com/andreamper220/CEPHEI_Arduino/blob/master/MEGA_Wiring.png?raw=true)
 
 
 ## Protocol description
