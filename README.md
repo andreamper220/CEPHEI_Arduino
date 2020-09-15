@@ -1,6 +1,19 @@
 # CEPHEI_Arduino
 
-Arduino sketch for multiple peripheral devices interfacing 
+Arduino sketch for multiple peripheral devices interfacing from PC by Serial communication.
+
+It allows to:
+
+* read values from analog sensors (e.g. IR-thermometers with 0-5V interface)
+* control over 54 different devices by digital output signals (e.g. relays, buttons, diodes etc.)
+* read digital TTL-signals (0-5V) from 54 sources
+* control power of 14 different devices by PWM-signals (e.g. heater, cooler, diodes)
+* change PWM duty of all the PWM-pins
+* control bulb lump power with software-controlled dimmer by implementing zero-crossing handling (based on hardware interrupts of ATmega2560)
+* interface with 1-Wire sensors (e.g. DS18B20 temperature sensor)
+* interface with i2c sensors (e.g. BH1750 light sensor)
+
+
 
 ## Protocol description
 
