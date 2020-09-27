@@ -176,18 +176,18 @@ void getTemp(int pin, int argument)
 void getCurrent(int argument)
 {
   if (argument == 0) {
-    currentCurrent_1 = (float)INA226.getBusMicroAmps(0) / 1000.0;
+    currentCurrent_1 = INA.getBusMicroAmps(0) / 1000.0;
   } else if (argument == 1) {
-    currentCurrent_2 = (float)INA226.getBusMicroAmps(1) / 1000.0;
+    currentCurrent_2 = INA.getBusMicroAmps(1) / 1000.0;
   }
 }
 
 void getVoltage(int argument)
 {
   if (argument == 0) {
-    currentVoltage_1 = (float)INA226.getBusMilliVolts(true, 0) / 1000.0;
+    currentVoltage_1 = INA.getBusMilliVolts(0) / 1000.0;
   } else if (argument == 1) {
-    currentVoltage_2 = (float)INA226.getBusMilliVolts(true, 1) / 1000.0;
+    currentVoltage_2 = INA.getBusMilliVolts(1) / 1000.0;
   }
 }
 

@@ -3,7 +3,7 @@
 #include <DallasTemperature.h>
 #include <RBDdimmer.h>
 #include <Wire.h>
-#include <INA226.h>
+#include <INA.h>
 #include <avr/eeprom.h>
 
 #define TEMP_SENSORS_COUNT    1
@@ -27,12 +27,12 @@ String customStamp = "";
 byte buff[2];
 int ONE_WIRE_BUS = 8;
 int DIMMER_PIN = 6;
-int IR_SENSOR_PIN = 43;
+int IR_SENSOR_PIN = 62;
 
 dimmerLamp dimmer(DIMMER_PIN);
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
-INA226_Class INA226;
+INA_Class INA;
 
 bool isCR = false;
 bool isSerial = false;
@@ -60,10 +60,10 @@ double currentTemperature;
 uint16_t currentLux;
 int currentTemperatureIR;
 int currentLampPower;
-double currentVoltage_1;
-double currentCurrent_1;
-double currentVoltage_2;
-double currentCurrent_2;
+float currentVoltage_1;
+float currentCurrent_1;
+float currentVoltage_2;
+float currentCurrent_2;
 
 unsigned long start = 0;
 
@@ -74,20 +74,20 @@ void setup()
   Serial.begin(115200);
   OneWire oneWire(ONE_WIRE_BUS);
   DallasTemperature sensors(&oneWire);
-  INA226.begin(1,100000);
-  INA226.setAveraging(4);                                                   
-  INA226.setBusConversion(7);                                                
-  INA226.setShuntConversion(7);                                               
-  INA226.setMode(INA_MODE_CONTINUOUS_BOTH);
+  INA.begin(1,100000);
+  INA.setAveraging(128);                                                   
+  INA.setBusConversion(8500);                                                
+  INA.setShuntConversion(8500);                                               
+  INA.setMode(INA_MODE_CONTINUOUS_BOTH);
   
-  byte isConfigured = eeprom_read_byte(0);
+//  byte isConfigured = eeprom_read_byte(0);
   
-  if (isConfigured == 1) {
-    readConfig();
-  }
+//  if (isConfigured == 1) {
+//    readConfig();
+//  }
   // for Serial
-  eeprom_write_byte(1, 200);
-  eeprom_write_byte(2, 200);
+//  eeprom_write_byte(1, 200);
+//  eeprom_write_byte(2, 200);
 
   for (byte i = 54; i <= 70; i++) {
     AI_PINS[i - 54] = i;
@@ -111,7 +111,7 @@ void loop()
 
   /** WATCHDOG */
   if (millis() - start > 2000) {
-    getLux(0);
+    getLux(1);
     getAnalogInput(IR_SENSOR_PIN, 0, true);
     currentLampPower = dimmer.getPower();
     getCurrent(0);
@@ -229,9 +229,10 @@ void loop()
                 setCustomStamp(data[2]);
               }
             } else if (command == "WDOG") {
-              Serial.println("OK TEMP" + String(currentTemperature, DEC) + " LUX" + String(currentLux) +
+              Serial.println("@OK TEMP" + String(currentTemperature, DEC) + " LUX" + String(currentLux) +
                 " IR" + String(currentTemperatureIR) + " VOLT1" + String(currentVoltage_1) + " VOLT2" + String(currentVoltage_2) +
                 " CURR1" + String(currentCurrent_1) + " CURR2" + String(currentCurrent_2) + " POWR" + String(dimmer.getPower()));
+              isSuccess = true;
             }
             datas[0][0] = "";
             datas[1][0] = "";
