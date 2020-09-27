@@ -3,6 +3,7 @@
 #include <DallasTemperature.h>
 #include <RBDdimmer.h>
 #include <Wire.h>
+#include <INA226.h>
 #include <avr/eeprom.h>
 
 #define TEMP_SENSORS_COUNT    1
@@ -26,10 +27,12 @@ String customStamp = "";
 byte buff[2];
 int ONE_WIRE_BUS = 8;
 int DIMMER_PIN = 6;
+int IR_SENSOR_PIN = 43;
 
 dimmerLamp dimmer(DIMMER_PIN);
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
+INA226_Class INA226;
 
 bool isCR = false;
 bool isSerial = false;
@@ -53,6 +56,15 @@ String dataString;
 String datas[3][1];
 String data[3];
 
+double currentTemperature;
+uint16_t currentLux;
+int currentTemperatureIR;
+int currentLampPower;
+double currentVoltage_1;
+double currentCurrent_1;
+double currentVoltage_2;
+double currentCurrent_2;
+
 unsigned long start = 0;
 
 void setup() 
@@ -60,6 +72,14 @@ void setup()
   Wire.begin();
   dimmer.begin(NORMAL_MODE, ON);
   Serial.begin(115200);
+  OneWire oneWire(ONE_WIRE_BUS);
+  DallasTemperature sensors(&oneWire);
+  INA226.begin(1,100000);
+  INA226.setAveraging(4);                                                   
+  INA226.setBusConversion(7);                                                
+  INA226.setShuntConversion(7);                                               
+  INA226.setMode(INA_MODE_CONTINUOUS_BOTH);
+  
   byte isConfigured = eeprom_read_byte(0);
   
   if (isConfigured == 1) {
@@ -88,22 +108,31 @@ void loop()
   isSerial = false;
   isSuccess = false;
   isFailure = false;
-    
-  OneWire oneWire(ONE_WIRE_BUS);
-  DallasTemperature sensors(&oneWire);
-  sensors.requestTemperatures();
-  
-  for (byte i = 0; i < TEMP_SENSORS_COUNT; i++) {
-    float temperature = sensors.getTempCByIndex(i);
-    if (temperature > CRITICAL_TEMPERATURE || temperature < 0.0) {
-      for (byte j = 0; j < (sizeof(PWM_PINS) / sizeof(PWM_PINS[0])); j++) {
-        if (!in_array(PWM_PINS[j], sizeof(COOLER_PINS) / sizeof(COOLER_PINS[0]), COOLER_PINS) && PWM_PINS[j] != DIMMER_PIN) {
-          setOutputPWM(PWM_PINS[j], 0, false);
+
+  /** WATCHDOG */
+  if (millis() - start > 2000) {
+    getLux(0);
+    getAnalogInput(IR_SENSOR_PIN, 0, true);
+    currentLampPower = dimmer.getPower();
+    getCurrent(0);
+    getCurrent(1);
+    getVoltage(0);
+    getVoltage(1);
+    for (byte i = 0; i < TEMP_SENSORS_COUNT; i++) {
+      getTemp(ONE_WIRE_BUS, i);
+      if (currentTemperature > CRITICAL_TEMPERATURE || currentTemperature < 0.0) {
+        for (byte j = 0; j < (sizeof(PWM_PINS) / sizeof(PWM_PINS[0])); j++) {
+          if (!in_array(PWM_PINS[j], sizeof(COOLER_PINS) / sizeof(COOLER_PINS[0]), COOLER_PINS) && PWM_PINS[j] != DIMMER_PIN) {
+            setOutputPWM(PWM_PINS[j], 0, false);
+          }
         }
+        dimmer.setPower(2);
       }
-      dimmer.setPower(2);
     }
+    
+    start = millis();
   }
+  /** ------------- */
 
   if (Serial.available() > 0) {
     isSerial = true; 
@@ -158,7 +187,7 @@ void loop()
             sendFailure(NOT_USED_PINS_ERROR);
           } else {
             if (command == "AI") {
-              getAnalogInput(pin, argument);
+              getAnalogInput(pin, argument, false);
             } else if (command == "DI") {
               getDigitalInput(pin, argument);
             } else if (command == "DO") {
@@ -174,9 +203,21 @@ void loop()
                 setOutputServo(pin, argument);
               }
             } else if (command == "LUX") {
-              getLux(pin, argument);
+              sendValue(String(currentLux));
             } else if (command == "TEMP") {
-              getTemp(pin, argument);
+              sendValue(String(currentTemperature, DEC));
+            } else if (command == "CURR") {
+              if (argument == 0) {
+                sendValue(String(currentCurrent_1));
+              } else if (argument == 1) {
+                sendValue(String(currentCurrent_2));
+              }
+            } else if (command == "VOLT") {
+              if (argument == 0) {
+                sendValue(String(currentVoltage_1));
+              } else if (argument == 1) {
+                sendValue(String(currentVoltage_2));
+              }
             } else if (command == "CFG") {
               byte function = lowByte(argument);
               setConfig(pin, function);
@@ -187,6 +228,10 @@ void loop()
               } else {
                 setCustomStamp(data[2]);
               }
+            } else if (command == "WDOG") {
+              Serial.println("OK TEMP" + String(currentTemperature, DEC) + " LUX" + String(currentLux) +
+                " IR" + String(currentTemperatureIR) + " VOLT1" + String(currentVoltage_1) + " VOLT2" + String(currentVoltage_2) +
+                " CURR1" + String(currentCurrent_1) + " CURR2" + String(currentCurrent_2) + " POWR" + String(dimmer.getPower()));
             }
             datas[0][0] = "";
             datas[1][0] = "";

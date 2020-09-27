@@ -12,30 +12,30 @@ void setConfig(int pin, byte function) {
     switch (pin) {
       case 4:
       case 13:
-        TCCR0B = TCCR0B & B11111000  | frequency;
+//        TCCR0B = TCCR0B & B11111000  | frequency;
         break;
       case 11:
       case 12:
-        TCCR1B = TCCR1B & B11111000  | frequency;
+//        TCCR1B = TCCR1B & B11111000  | frequency;
         break;
       case 9:
       case 10:
-        TCCR2B = TCCR2B & B11111000  | frequency;
+//        TCCR2B = TCCR2B & B11111000  | frequency;
         break;
       case 2:
       case 3:
       case 5:
-        TCCR3B = TCCR3B & B11111000  | frequency;
+//        TCCR3B = TCCR3B & B11111000  | frequency;
         break;
       case 6:
       case 7:
       case 8:
-        TCCR4B = TCCR4B & B11111000  | frequency;
+//        TCCR4B = TCCR4B & B11111000  | frequency;
         break;
       case 44:
       case 45:
       case 46:
-        TCCR5B = TCCR5B & B11111000  | frequency;
+//        TCCR5B = TCCR5B & B11111000  | frequency;
         break;
     }
     eeprom_write_byte(0, 1);

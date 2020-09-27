@@ -1,4 +1,4 @@
-void getAnalogInput(int pin, int argument) 
+void getAnalogInput(int pin, int argument, bool isIRsensor) 
 {
   if (in_array(pin, sizeof(AI_PINS) / sizeof(AI_PINS[0]), AI_PINS)) {
     if (argument == 1) {
@@ -8,7 +8,11 @@ void getAnalogInput(int pin, int argument)
     }
     pinMode(pin, INPUT);
     int value = analogRead(pin);
-    sendValue(String(value));
+    if (isIRsensor) {
+      currentTemperatureIR = value;
+    } else {
+      sendValue(String(value));
+    }
   } else {
     sendFailure(PINS_ERROR);
   }
@@ -137,7 +141,7 @@ void setOutputServo(int pin, int argument)
   }
 }
 
-void getLux(int pin, int argument)
+void getLux(int argument)
 {
   int i;
   int BH1750address;
@@ -153,7 +157,7 @@ void getLux(int pin, int argument)
   if(2==BH1750_Read(BH1750address))
   {
     value=((buff[0]<<8)|buff[1])/1.2;
-    sendValue(String(value));
+    currentLux = value;
   } else {
     sendFailure(BH1750_ADDRESS_ERROR);
   }
@@ -164,12 +168,26 @@ void getTemp(int pin, int argument)
   if (isI2CEnabled && is_I2C_pin(pin)) {
     sendFailure(I2C_ERROR);
   } else {
-    OneWire oneWire(pin);
-    DallasTemperature sensors(&oneWire);
-  
     sensors.requestTemperatures();
-    String sensor = String(sensors.getTempCByIndex(argument),DEC);
-    sendValue(sensor);
+    currentTemperature = sensors.getTempCByIndex(argument);
+  }
+}
+
+void getCurrent(int argument)
+{
+  if (argument == 0) {
+    currentCurrent_1 = (float)INA226.getBusMicroAmps(0) / 1000.0;
+  } else if (argument == 1) {
+    currentCurrent_2 = (float)INA226.getBusMicroAmps(1) / 1000.0;
+  }
+}
+
+void getVoltage(int argument)
+{
+  if (argument == 0) {
+    currentVoltage_1 = (float)INA226.getBusMilliVolts(true, 0) / 1000.0;
+  } else if (argument == 1) {
+    currentVoltage_2 = (float)INA226.getBusMilliVolts(true, 1) / 1000.0;
   }
 }
 
