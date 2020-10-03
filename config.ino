@@ -1,13 +1,13 @@
 void readConfig() {
   for (int pin = 0; pin < 70; pin++) {
-    byte function = eeprom_read_byte(pin + 1);
+    byte function = eeprom_read_byte(100 + pin + 1);
     setConfig(pin, function);
   }
 }
 
 void setConfig(int pin, byte function) {
   if (function > 40 && function <= 47) {
-    byte frequency = function % 40;                                                                                                     
+    byte frequency = function % 40;                                                                                                    
     pinMode(pin, OUTPUT);
     switch (pin) {
       case 4:
@@ -38,41 +38,41 @@ void setConfig(int pin, byte function) {
         TCCR5B = TCCR5B & B11111000  | frequency;
         break;
     }
-    eeprom_write_byte(0, 1);
-    eeprom_write_byte(pin + 1, function);
+    eeprom_write_byte(100, 1);
+    eeprom_write_byte(100 + pin + 1, function);
   } else if (function == 5) {
     servo.attach(pin);
-    eeprom_write_byte(0, 1);
-    eeprom_write_byte(pin + 1, function);
+    eeprom_write_byte(100, 1);
+    eeprom_write_byte(100 + pin + 1, function);
   } else if (function == 6) {
     isI2CEnabled = true;
-    eeprom_write_byte(0, 1);
-    eeprom_write_byte(pin + 1, function);
+    eeprom_write_byte(100, 1);
+    eeprom_write_byte(100 + pin + 1, function);
   } else if (function == 7) {
     ONE_WIRE_BUS = pin;
-    eeprom_write_byte(0, 1);
-    eeprom_write_byte(pin + 1, function);
+    eeprom_write_byte(100, 1);
+    eeprom_write_byte(100 + pin + 1, function);
   } else if (function == 8) {
     DIMMER_PIN = pin;
-    eeprom_write_byte(0, 1);
-    eeprom_write_byte(3, 200);
-    eeprom_write_byte(pin + 1, function);
+    eeprom_write_byte(100, 1);
+    eeprom_write_byte(103, 200);
+    eeprom_write_byte(100 + pin + 1, function);
     isDimmerEnabled = true;  
   } else if (function == 97) {
-    sendValue(String(eeprom_read_byte(pin + 1)));
+    sendValue(String(eeprom_read_byte(100 + pin + 1)));
   } else if (function == 98) {
     for (int pin = 0; pin < 70; pin++) {
-      byte function = eeprom_read_byte(pin + 1);
+      byte function = eeprom_read_byte(100 + pin + 1);
       if (function != 255) {
         sendValue(String(pin));
       }
     }
   } else if (function == 99) {
-    eeprom_write_byte(pin + 1, 255);
+    eeprom_write_byte(100 + pin + 1, 255);
     readConfig();
   } else if (function == 200) {
     NOT_USED_PINS[pin] = true;
-    eeprom_write_byte(pin + 1, function);
+    eeprom_write_byte(100 + pin + 1, function);
   } else {
     NOT_USED_PINS[pin] = false;
   }
