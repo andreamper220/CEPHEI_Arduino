@@ -75,16 +75,6 @@ bool in_array(int val, int arr_size, int *arr)
     return false;
 }
 
-/** SERV */
-void checkServo(int pin)
-{
-  if (in_array(pin, sizeof(SERV_PINS) / sizeof(SERV_PINS[0]), SERV_PINS)) {
-    servoIndex = find_key_by_value(pin, sizeof(SERV_PINS) / sizeof(SERV_PINS[0]), SERV_PINS);
-    SERV_PINS[servoIndex] = 255;
-    servos[servoIndex].detach();
-  }
-}
-
 /** LUX */
 int BH1750_Read(int address) 
 {

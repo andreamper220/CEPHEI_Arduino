@@ -28,6 +28,7 @@ byte buff[2];
 int ONE_WIRE_BUS = 8;
 int DIMMER_PIN = 6;
 int IR_SENSOR_PIN = 62;
+int SERVOH_PIN = 3;
 
 dimmerLamp dimmer(DIMMER_PIN);
 OneWire oneWire(ONE_WIRE_BUS);
@@ -39,8 +40,7 @@ bool isSerial = false;
 bool isSuccess = false;
 bool isFailure = false;
 
-ServoTimer2 servos[14];
-byte servoIndex = 0;
+ServoTimer2 servoHold;
 ServoTimer2 servo;
 byte index = 0;
 byte dataIndex = 0;

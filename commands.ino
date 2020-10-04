@@ -141,7 +141,7 @@ void setOutputServo(int pin, int argument)
   }
 }
 
-void setOutputServoHold(int pin, int argument) 
+void setOutputServoHold(int pin, int argument)
 {
   int angle = map(argument, 0, 180, 750, 2250);
   if (in_array(pin, sizeof(PWM_PINS) / sizeof(PWM_PINS[0]), PWM_PINS)) {
@@ -149,18 +149,11 @@ void setOutputServoHold(int pin, int argument)
       if (isI2CEnabled && is_I2C_pin(pin)) {
         sendFailure(I2C_ERROR);
       } else {
-        int index = find_key_by_value(pin, sizeof(SERV_PINS) / sizeof(SERV_PINS[0]), SERV_PINS);
-        sendSuccess();
-        if (index != 255) {
-          sendSuccess();
-          servos[index].write(angle);
-        } else {
-          sendSuccess();
-          SERV_PINS[servoIndex] = pin;
-          servos[servoIndex].attach(pin);
-          servos[servoIndex].write(angle);
-          servoIndex++;
-        }
+        if (pin != SERVOH_PIN) {
+          servoHold.attach(pin);
+          SERVOH_PIN = pin;
+        } 
+        servoHold.write(angle);
         sendSuccess();
       }
     } else {
