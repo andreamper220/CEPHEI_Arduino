@@ -118,7 +118,6 @@ void getServoAngle(int pin)
 void setOutputServo(int pin, int argument) 
 {
   int angle = map(argument, 0, 180, 750, 2250);
-  if (in_array(pin, sizeof(PWM_PINS) / sizeof(PWM_PINS[0]), PWM_PINS)) {
     if (argument >= 0 && argument <= 180) {
       if (isI2CEnabled && is_I2C_pin(pin)) {
         sendFailure(I2C_ERROR);
@@ -136,15 +135,12 @@ void setOutputServo(int pin, int argument)
     } else {
       sendFailure(RANGE_ERROR);
     }
-  } else {
-    sendFailure(PINS_ERROR);
   }
 }
 
 void setOutputServoHold(int pin, int argument)
 {
   int angle = map(argument, 0, 180, 750, 2250);
-  if (in_array(pin, sizeof(PWM_PINS) / sizeof(PWM_PINS[0]), PWM_PINS)) {
     if (argument >= 0 && argument <= 180) {
       if (isI2CEnabled && is_I2C_pin(pin)) {
         sendFailure(I2C_ERROR);
@@ -159,8 +155,6 @@ void setOutputServoHold(int pin, int argument)
     } else {
       sendFailure(RANGE_ERROR);
     } 
-  } else {
-    sendFailure(PINS_ERROR);
   }
 }
 

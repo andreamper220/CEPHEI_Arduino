@@ -20,8 +20,6 @@
 #define RANGE_ERROR           7
 #define SERIAL_ERROR          8
 
-#define WDOG_FREQUENCY_MS     500             
-
 int errorCount = 0;
 
 String customStamp = "";
@@ -30,7 +28,6 @@ byte buff[2];
 int ONE_WIRE_BUS = 8;
 int DIMMER_PIN = 6;
 int IR_SENSOR_PIN = 62;
-int SERVOH_PIN = 3;
 
 dimmerLamp dimmer(DIMMER_PIN);
 OneWire oneWire(ONE_WIRE_BUS);
@@ -42,7 +39,8 @@ bool isSerial = false;
 bool isSuccess = false;
 bool isFailure = false;
 
-ServoTimer2 servoHold;
+ServoTimer2 servos[14];
+byte servoIndex = 0;
 ServoTimer2 servo;
 byte index = 0;
 byte dataIndex = 0;
@@ -54,7 +52,8 @@ bool NOT_USED_PINS[70];
 int AI_PINS[16];
 int DI_PINS[54];
 int DO_PINS[70];
-int PWM_PINS[6] = {6, 7, 8, 9, 11, 12};
+int PWM_PINS[10] = {3, 4, 5, 6, 7, 8, 9, 11, 12, 13};
+int SERV_PINS[14] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 44, 45};
 int COOLER_PINS[2] = {11, 12};
 String dataString;
 String datas[3][1];
@@ -74,7 +73,6 @@ float currentCurrent_2;
 float currentPower_2;
 
 unsigned long start = 0;
-unsigned long timeDifference = 0;
 
 void setup() 
 {  
@@ -121,9 +119,8 @@ void loop()
   isSuccess = false;
   isFailure = false;
 
-  timeDifference = millis() - start;
   /** WATCHDOG */
-  if (timeDifference > WDOG_FREQUENCY_MS || timeDifference <= 0) {
+  if (millis() - start > 1000) {
     getLux(1);
     getAnalogInput(IR_SENSOR_PIN, 0, true);
     currentLampPower = dimmer.getPower();
