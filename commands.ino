@@ -118,44 +118,42 @@ void getServoAngle(int pin)
 void setOutputServo(int pin, int argument) 
 {
   int angle = map(argument, 0, 180, 750, 2250);
-    if (argument >= 0 && argument <= 180) {
-      if (isI2CEnabled && is_I2C_pin(pin)) {
-        sendFailure(I2C_ERROR);
-      } else {
-        servo.attach(pin);
-        servo.write(angle);
-        delay(2000);
-        if (round(servo.read()) == angle) {
-          sendSuccess();
-        } else {
-          sendFailure(ANGLE_ERROR);
-        }
-        servo.detach();
-      }
+  if (argument >= 0 && argument <= 180) {
+    if (isI2CEnabled && is_I2C_pin(pin)) {
+      sendFailure(I2C_ERROR);
     } else {
-      sendFailure(RANGE_ERROR);
+      servo.attach(pin);
+      servo.write(angle);
+      delay(2000);
+      if (round(servo.read()) == angle) {
+        sendSuccess();
+      } else {
+        sendFailure(ANGLE_ERROR);
+      }
+      servo.detach();
     }
+  } else {
+    sendFailure(RANGE_ERROR);
   }
 }
 
 void setOutputServoHold(int pin, int argument)
 {
   int angle = map(argument, 0, 180, 750, 2250);
-    if (argument >= 0 && argument <= 180) {
-      if (isI2CEnabled && is_I2C_pin(pin)) {
-        sendFailure(I2C_ERROR);
-      } else {
-        if (pin != SERVOH_PIN) {
-          servoHold.attach(pin);
-          SERVOH_PIN = pin;
-        } 
-        servoHold.write(angle);
-        sendSuccess();
-      }
+  if (argument >= 0 && argument <= 180) {
+    if (isI2CEnabled && is_I2C_pin(pin)) {
+      sendFailure(I2C_ERROR);
     } else {
-      sendFailure(RANGE_ERROR);
-    } 
-  }
+      if (pin != SERVOH_PIN) {
+        servoHold.attach(pin);
+        SERVOH_PIN = pin;
+      } 
+      servoHold.write(angle);
+      sendSuccess();
+    }
+  } else {
+    sendFailure(RANGE_ERROR);
+  } 
 }
 
 void getLux(int argument)
