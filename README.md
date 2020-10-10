@@ -31,7 +31,7 @@ It allows to:
 |PWM (PWM output)|2-9, 10-13, 44-45|0-255 (duty)|
 |DIM (lamp dimmer output)|0-1, 3-70|0-100 (power)|
 |SERV (servo output w/o angle holding/ angle value)|2-9, 10-13, 44-45|0-180 (angle) / ? (for value getting)|
-|SERVH (servo output with angle holding)|2-9, 10-13, 44-45|0-180 (angle) / ? (for value getting)|
+|SERVH (servo output with angle holding)|2-9, 10-13, 44-45|0-180 (angle)|
 |LUX (light sensor BH1750 read)|IGNORED|0-1 (0x23 or 0x5C address)|
 |TEMP (temperature sensor DS18B20 read)|pin, configured as ONE_WIRE|0-127 (address)|
 |TIME (custom stamp for arduino reset checking)|IGNORED|CUSTOM_STRING / ?|
