@@ -17,6 +17,7 @@ void sendSuccess()
 {
   Serial.println("@OK");
   isSuccess = true;
+  lastReplyTime = millis();
 }
 
 void sendFailure(int errorType)
@@ -27,6 +28,7 @@ void sendFailure(int errorType)
     Serial.println(String(errorType));
   }
   isFailure = true;
+  lastReplyTime = millis();
 }
 
 void sendValue(String value)
@@ -34,6 +36,7 @@ void sendValue(String value)
   Serial.print("@OK REPLY ");
   Serial.println(value);
   isSuccess = true;
+  lastReplyTime = millis();
 }
 
 void sendBufferSize()

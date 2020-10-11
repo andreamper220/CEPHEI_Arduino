@@ -1,3 +1,57 @@
+/*
+    Arduino sketch for multiple peripheral devices interfacing from PC by Serial communication.
+    
+    It allows to:
+    
+    * read values from analog sensors (e.g. IR-thermometers with 0-5V interface)
+    * control over 54 different devices by digital output signals (e.g. relays, buttons, diodes etc.)
+    * read digital TTL-signals (0-5V) from 54 sources
+    * control power of 14 different devices by PWM-signals (e.g. heater, cooler, diodes)
+    * change PWM duty of all the PWM-pins
+    * control bulb lump power with software-controlled dimmer by implementing **zero-crossing** handling (based on hardware interrupts of ATmega2560) with [rbdDimmer-library](https://github.com/RobotDynOfficial/RBDDimmer)
+    * interface with 1-Wire sensors (e.g. DS18B20 temperature sensor)
+    * interface with i2c sensors (e.g. BH1750 light sensor)
+     
+    Current-Voltage measurements are executed by 2xINA226 and [INA-library](https://github.com/SV-Zanshin/INA)
+
+    Master Request:
+    `@CMD PIN ARG#<CR><LF>`, where:
+    
+    |================================================================================================================|
+    |CMD                                                |PIN              |ARG                                       |
+    |===================================================|=================|==========================================|
+    |AI (analog read)                                   |54-70            |0/1 (DEFAULT or EXTERNAL analog reference)|
+    |---------------------------------------------------|-----------------|------------------------------------------|
+    |DI (digital read)                                  |0-53             |IGNORED                                   |
+    |---------------------------------------------------|-----------------|------------------------------------------|
+    |DO (digital output)                                |0-53             |0/1 (LOW or HIGH level)                   |
+    |---------------------------------------------------|-----------------|------------------------------------------|
+    |PWM (PWM output)                                   |2-9, 10-13, 44-45|0-255 (duty)                              |
+    |---------------------------------------------------|-----------------|------------------------------------------|
+    |DIM (lamp dimmer output)                           |0-1, 3-70        |0-100 (power)                             |
+    |---------------------------------------------------|-----------------|------------------------------------------|
+    |SERV (servo output w/o angle holding / angle value)|2-9, 10-13, 44-45|0-180 (angle) / '?' (for value getting)   |
+    |---------------------------------------------------|-----------------|------------------------------------------|
+    |SERVH (servo output with angle holding)            |2-9, 10-13, 44-45|0-180 (angle)                             |
+    |---------------------------------------------------|-----------------|------------------------------------------|
+    |LUX (light sensor BH1750 read)                     |IGNORED          |0-1 (0x23 or 0x5C address)                |
+    |---------------------------------------------------|-----------------|------------------------------------------|
+    |TEMP (temperature sensor DS18B20 read)             |ONE_WIRE pin     |0-127 (address)                           |
+    |---------------------------------------------------|-----------------|------------------------------------------|
+    |TIME (custom stamp for arduino reset checking)     |IGNORED          |CUSTOM_STRING / '?'                       |
+    |---------------------------------------------------|-----------------|------------------------------------------|
+    |CFG (set config)                                   |any              |4X - according to PWM config table;       |
+    |                                                   |                 |6 - enable I2C;                           |
+    |                                                   |                 |7 - set for temp. sensors (ONE_WIRE);     |
+    |                                                   |                 |8 - enable dimmer (lock 2nd pin);         |
+    |                                                   |                 |97 - show config  pin value;              |
+    |                                                   |                 |98 - show non-default pins;               |
+    |                                                   |                 |99 - clear pin value                      |
+    |---------------------------------------------------|-----------------|------------------------------------------|
+    |WDOG (shows all watchdog variables)                |IGNORED          |IGNORED                                   |
+    |================================================================================================================|
+ */
+
 #include <ServoTimer2.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -5,6 +59,7 @@
 #include <Wire.h>
 #include <INA.h>
 #include <avr/eeprom.h>
+#include <avr/limits.h>
 
 #define TEMP_SENSORS_COUNT    1
 #define CRITICAL_TEMPERATURE  70
@@ -20,7 +75,8 @@
 #define RANGE_ERROR           7
 #define SERIAL_ERROR          8
 
-#define WDOG_FREQUENCY_MS     500             
+#define WDOG_FREQUENCY_MS     300        
+#define CRIT_REPLY_FREQUENCY  300000     
 
 int errorCount = 0;
 
@@ -60,7 +116,7 @@ String dataString;
 String datas[3][1];
 String data[3];
 
-double currentTemperature;
+float currentTemperature;
 uint16_t currentLux;
 int currentTemperatureIR;
 int currentLampPower;
@@ -74,7 +130,9 @@ float currentCurrent_2;
 float currentPower_2;
 
 unsigned long start = 0;
-unsigned long timeDifference = 0;
+unsigned long timeDifferenceWatchdog = 0;
+unsigned long lastReplyTime = 0;
+unsigned long timeDifferenceReply = 0;
 
 void setup() 
 {  
@@ -112,15 +170,22 @@ void setup()
   dimmer.setPower(2);
 }
 
+void(*resetFunc)(void) = 0;
+
 void loop() 
 {
   isSerial = false;
   isSuccess = false;
   isFailure = false;
 
-  timeDifference = millis() - start;
+  timeDifferenceReply = millis() - lastReplyTime;
+  if (timeDifferenceReply > CRIT_REPLY_FREQUENCY || (ULONG_MAX - lastReplyTime) + millis() > CRIT_REPLY_FREQUENCY) {
+    resetFunc();
+  }
+
+  timeDifferenceWatchdog = millis() - start;
   /** WATCHDOG */
-  if (timeDifference > WDOG_FREQUENCY_MS || timeDifference <= 0) {
+  if (timeDifferenceWatchdog > WDOG_FREQUENCY_MS || timeDifferenceWatchdog <= 0) {
     getLux(1);
     getAnalogInput(IR_SENSOR_PIN, 0, true);
     currentLampPower = dimmer.getPower();
@@ -224,15 +289,15 @@ void loop()
               sendValue(String(currentTemperature, DEC));
             } else if (command == "CURR") {
               if (argument == 0) {
-                sendValue(String(currentCurrent_1));
+                sendValue(String(currentCurrent_1, DEC));
               } else if (argument == 1) {
-                sendValue(String(currentCurrent_2));
+                sendValue(String(currentCurrent_2, DEC));
               }
             } else if (command == "VOLT") {
               if (argument == 0) {
-                sendValue(String(currentVoltage_1));
+                sendValue(String(currentVoltage_1, DEC));
               } else if (argument == 1) {
-                sendValue(String(currentVoltage_2));
+                sendValue(String(currentVoltage_2, DEC));
               }
             } else if (command == "CFG") {
               byte function = lowByte(argument);
@@ -247,9 +312,10 @@ void loop()
             } else if (command == "WDOG") {
               Serial.println("@OK TEMP_" + String(currentTemperature, DEC) + " LUX_" + String(currentLux) +
                 " IR_" + String(currentTemperatureIR) + " DIMMER_" + String(dimmer.getPower()) + 
-                " VOLT1_" + String(currentVoltage_1) + " VOLTSNT1_" + String(currentShuntVoltage_1) + " CURR1_" + String(currentCurrent_1) + " POWR1_" + String(currentPower_1) +
-                " VOLT2_" + String(currentVoltage_2) + " VOLTSNT2_" + String(currentShuntVoltage_2) + " CURR2_" + String(currentCurrent_2) + " POWR2_" + String(currentPower_2));
+                " VOLT1_" + String(currentVoltage_1, DEC) + " VOLTSNT1_" + String(currentShuntVoltage_1, DEC) + " CURR1_" + String(currentCurrent_1, DEC) + " POWR1_" + String(currentPower_1, DEC) +
+                " VOLT2_" + String(currentVoltage_2, DEC) + " VOLTSNT2_" + String(currentShuntVoltage_2, DEC) + " CURR2_" + String(currentCurrent_2, DEC) + " POWR2_" + String(currentPower_2, DEC));
               isSuccess = true;
+              lastReplyTime = millis();
             }
             datas[0][0] = "";
             datas[1][0] = "";

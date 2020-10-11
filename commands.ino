@@ -144,6 +144,7 @@ void setOutputServoHold(int pin, int argument)
     if (isI2CEnabled && is_I2C_pin(pin)) {
       sendFailure(I2C_ERROR);
     } else {
+      servoHold.detach();
       if (pin != SERVOH_PIN) {
         servoHold.attach(pin);
         SERVOH_PIN = pin;
