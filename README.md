@@ -9,12 +9,13 @@ It allows to:
 * read digital TTL-signals (0-5V) from 54 sources
 * control power of 14 different devices by PWM-signals (e.g. heater, cooler, diodes)
 * change PWM duty of all the PWM-pins
-* control bulb lump power with software-controlled dimmer by implementing zero-crossing handling (based on hardware interrupts of ATmega2560)
+* control bulb lump power with software-controlled dimmer by implementing **zero-crossing** handling (based on hardware interrupts of ATmega2560) with [rbdDimmer-library](https://github.com/RobotDynOfficial/RBDDimmer)
 * interface with 1-Wire sensors (e.g. DS18B20 temperature sensor)
 * interface with i2c sensors (e.g. BH1750 light sensor)
 
 ![alt text](https://github.com/andreamper220/CEPHEI_Arduino/blob/master/MEGA_Wiring.png?raw=true)
 
+**Current-Voltage measurements** are executed by 2xINA226 and [INA-library](https://github.com/SV-Zanshin/INA)
 
 ## Protocol description
 
@@ -25,15 +26,17 @@ It allows to:
 |**CMD**|**PIN**|**ARG**|
 |---|---|---|
 |AI (analog read)|54-70|0/1 (DEFAULT or EXTERNAL analog reference)|
-|DI (digital read)|0-53||
+|DI (digital read)|0-53|IGNORED|
 |DO (digital output)|0-53|0/1 (LOW or HIGH level)|
 |PWM (PWM output)|2-9, 10-13, 44-45|0-255 (duty)|
 |DIM (lamp dimmer output)|0-1, 3-70|0-100 (power)|
-|SERV (servo output / angle value)|2-9, 10-13, 44-45|0-180 (angle) / ? (for value getting)|
+|SERV (servo output w/o angle holding/ angle value)|2-9, 10-13, 44-45|0-180 (angle) / '?' (for value getting)|
+|SERVH (servo output with angle holding)|2-9, 10-13, 44-45|0-180 (angle)|
 |LUX (light sensor BH1750 read)|IGNORED|0-1 (0x23 or 0x5C address)|
 |TEMP (temperature sensor DS18B20 read)|pin, configured as ONE_WIRE|0-127 (address)|
-|TIME (custom stamp for arduino reset checking)|IGNORED|CUSTOM_STRING / ?|
+|TIME (custom stamp for arduino reset checking)|IGNORED|CUSTOM_STRING / '?'|
 |CFG (set config)|any|4X - according to PWM config table; <br>6 - enable I2C; <br>7 - set for temp. sensors (ONE_WIRE); <br>8 - enable dimmer (lock 2nd pin)<br>97 - show config  pin value; <br>98 - show non-default pins; <br>99 - clear pin value|
+|WDOG (shows all current-voltage, lux, temp, dimmer power characteristics)|IGNORED|IGNORED|
 
 **PWM config table** (PIN / X):
 |44, 45, 46|4, 13|2, 3, 5, 6, 7, 8, 11, 12|9, 10|
@@ -55,6 +58,26 @@ It allows to:
 * success with data:
 
 `@OK REPLY XXX.XXX<CR><LF>`
+
+* watchdog reply:
+
+`@OK TEMP_xx.xxx LUX_xx.xxx IR_xx.xxx DIMMER_xx.xxx VOLT1_xx.xxxxx VOLTSNT1_xx.xxxxx CURR1_xx.xxxxx POWR1_xx.xxxxx VOLT2_xx.xxxxx VOLTSNT2_xx.xxxxx CURR2_xx.xxxxx POWR2_xx.xxxxx<CR><LF>`
+
+TEMP - temperature from DS18B20
+
+LUX - ligth intensity from BH1750
+
+IR - temperature from IR-sensor
+
+DIMMER - bulb lump power
+
+VOLT - bus voltage [V]
+
+VOLTSNT - shunt resistor voltage [mV]
+
+CURR - bus current [mA]
+
+POWR - shunt resistor power [mW]
 
 * with error:
 
