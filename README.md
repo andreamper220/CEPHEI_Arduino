@@ -26,16 +26,17 @@ It allows to:
 |**CMD**|**PIN**|**ARG**|
 |---|---|---|
 |AI (analog read)|54-70|0/1 (DEFAULT or EXTERNAL analog reference)|
-|DI (digital read)|0-53||
+|DI (digital read)|0-53|IGNORED|
 |DO (digital output)|0-53|0/1 (LOW or HIGH level)|
 |PWM (PWM output)|2-9, 10-13, 44-45|0-255 (duty)|
 |DIM (lamp dimmer output)|0-1, 3-70|0-100 (power)|
-|SERV (servo output w/o angle holding/ angle value)|2-9, 10-13, 44-45|0-180 (angle) / ? (for value getting)|
+|SERV (servo output w/o angle holding/ angle value)|2-9, 10-13, 44-45|0-180 (angle) / '?' (for value getting)|
 |SERVH (servo output with angle holding)|2-9, 10-13, 44-45|0-180 (angle)|
 |LUX (light sensor BH1750 read)|IGNORED|0-1 (0x23 or 0x5C address)|
 |TEMP (temperature sensor DS18B20 read)|pin, configured as ONE_WIRE|0-127 (address)|
-|TIME (custom stamp for arduino reset checking)|IGNORED|CUSTOM_STRING / ?|
+|TIME (custom stamp for arduino reset checking)|IGNORED|CUSTOM_STRING / '?'|
 |CFG (set config)|any|4X - according to PWM config table; <br>6 - enable I2C; <br>7 - set for temp. sensors (ONE_WIRE); <br>8 - enable dimmer (lock 2nd pin)<br>97 - show config  pin value; <br>98 - show non-default pins; <br>99 - clear pin value|
+|WDOG (shows all current-voltage, lux, temp, dimmer power characteristics)|IGNORED|IGNORED|
 
 **PWM config table** (PIN / X):
 |44, 45, 46|4, 13|2, 3, 5, 6, 7, 8, 11, 12|9, 10|
