@@ -17,7 +17,7 @@ void sendSuccess()
 {
   Serial.println("@OK");
   isSuccess = true;
-  lastReplyTime = millis();
+  setWatchdogEnabled();
 }
 
 void sendFailure(int errorType)
@@ -28,7 +28,7 @@ void sendFailure(int errorType)
     Serial.println(String(errorType));
   }
   isFailure = true;
-  lastReplyTime = millis();
+  setWatchdogEnabled();
 }
 
 void sendValue(String value)
@@ -36,13 +36,19 @@ void sendValue(String value)
   Serial.print("@OK REPLY ");
   Serial.println(value);
   isSuccess = true;
-  lastReplyTime = millis();
+  setWatchdogEnabled();
 }
 
 void sendBufferSize()
 {
   Serial.print("buffer size = ");
   Serial.println(String(Serial.available()));
+}
+
+void setWatchdogEnabled()
+{
+  lastReplyTime = millis();
+  isWatchdogEnabled = true;
 }
 
 /** functions */

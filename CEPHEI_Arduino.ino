@@ -1,4 +1,6 @@
 /*
+    Sketch is developed only for *Arduino MEGA 2560*!
+    
     Arduino sketch for multiple peripheral devices interfacing from PC by Serial communication.
     
     It allows to:
@@ -59,7 +61,7 @@
 #include <Wire.h>
 #include <INA.h>
 #include <avr/eeprom.h>
-#include <avr/limits.h>
+#include <limits.h>
 
 #define TEMP_SENSORS_COUNT    1
 #define CRITICAL_TEMPERATURE  70
@@ -85,7 +87,7 @@ String customStamp = "";
 byte buff[2];
 int ONE_WIRE_BUS = 8;
 int DIMMER_PIN = 6;
-int IR_SENSOR_PIN = 62;
+int IR_SENSOR_PIN = 63;
 int SERVOH_PIN = 3;
 
 dimmerLamp dimmer(DIMMER_PIN);
@@ -97,6 +99,7 @@ bool isCR = false;
 bool isSerial = false;
 bool isSuccess = false;
 bool isFailure = false;
+bool isWatchdogEnabled = false;
 
 ServoTimer2 servoHold;
 ServoTimer2 servo;
@@ -146,6 +149,7 @@ void setup()
   INA.setBusConversion(8500);                                                
   INA.setShuntConversion(8500);                                               
   INA.setMode(INA_MODE_CONTINUOUS_BOTH);
+  servoHold.attach(SERVOH_PIN);
   
   byte isConfigured = eeprom_read_byte(100);
   
@@ -170,7 +174,7 @@ void setup()
   dimmer.setPower(2);
 }
 
-void(*resetFunc)(void) = 0;
+void(* resetFunc)(void) = 0;
 
 void loop() 
 {
@@ -178,9 +182,11 @@ void loop()
   isSuccess = false;
   isFailure = false;
 
-  timeDifferenceReply = millis() - lastReplyTime;
-  if (timeDifferenceReply > CRIT_REPLY_FREQUENCY || (ULONG_MAX - lastReplyTime) + millis() > CRIT_REPLY_FREQUENCY) {
-    resetFunc();
+  if (isWatchdogEnabled) {
+    timeDifferenceReply = millis() - lastReplyTime;
+    if (timeDifferenceReply > CRIT_REPLY_FREQUENCY || (timeDifferenceReply < 0 && (ULONG_MAX - lastReplyTime) + millis() > CRIT_REPLY_FREQUENCY)) {
+      resetFunc();
+    }
   }
 
   timeDifferenceWatchdog = millis() - start;
@@ -315,7 +321,7 @@ void loop()
                 " VOLT1_" + String(currentVoltage_1, DEC) + " VOLTSNT1_" + String(currentShuntVoltage_1, DEC) + " CURR1_" + String(currentCurrent_1, DEC) + " POWR1_" + String(currentPower_1, DEC) +
                 " VOLT2_" + String(currentVoltage_2, DEC) + " VOLTSNT2_" + String(currentShuntVoltage_2, DEC) + " CURR2_" + String(currentCurrent_2, DEC) + " POWR2_" + String(currentPower_2, DEC));
               isSuccess = true;
-              lastReplyTime = millis();
+              setWatchdogEnabled();
             }
             datas[0][0] = "";
             datas[1][0] = "";
