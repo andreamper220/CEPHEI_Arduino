@@ -143,9 +143,10 @@ void setOutputServoHold(int pin, int argument)
   if (argument >= 0 && argument <= 180) {
     if (isI2CEnabled && is_I2C_pin(pin)) {
       sendFailure(I2C_ERROR);
+void getLux(int argument)
     } else {
-      servoHold.detach();
       if (pin != SERVOH_PIN) {
+        servoHold.detach();
         servoHold.attach(pin);
         SERVOH_PIN = pin;
       } 
@@ -157,7 +158,6 @@ void setOutputServoHold(int pin, int argument)
   } 
 }
 
-void getLux(int argument)
 {
   int i;
   int BH1750address;
