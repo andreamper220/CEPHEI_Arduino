@@ -163,6 +163,9 @@ void setup()
   for (byte i = 54; i <= 70; i++) {
     AI_PINS[i - 54] = i;
     DO_PINS[i] = i;
+    if (i != IR_SENSOR_PIN) {
+      setOutput(i, LOW, false);
+    }
   }
   for (byte i = 0; i <= 53; i++) {
     DO_PINS[i] = i;
