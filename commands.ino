@@ -41,30 +41,26 @@ void getDigitalInput(int pin, int argument)
 
 void setOutput(int pin, int argument, bool toShowReply)
 { 
-  if (in_array(pin, sizeof(DO_PINS) / sizeof(DO_PINS[0]), DO_PINS)) {
-    if (argument == 0 || argument == 1) {
-      if (isI2CEnabled && is_I2C_pin(pin)) {
-        sendFailure(I2C_ERROR);
-      } else {
-        pinMode(pin, OUTPUT);
-        switch (argument) {
-          case 1:
-            digitalWrite(pin, HIGH);
-            break;
-          case 0:
-            digitalWrite(pin, LOW);
-            break;
-        }
-        if (toShowReply) {
-          sendSuccess();
-        }
-      }
+  if (argument == 0 || argument == 1) {
+    if (isI2CEnabled && is_I2C_pin(pin)) {
+      sendFailure(I2C_ERROR);
     } else {
-      sendFailure(RANGE_ERROR);
+      pinMode(pin, OUTPUT);
+      switch (argument) {
+        case 1:
+          digitalWrite(pin, HIGH);
+          break;
+        case 0:
+          digitalWrite(pin, LOW);
+          break;
+      }
+      if (toShowReply) {
+        sendSuccess();
+      }
     }
   } else {
-    sendFailure(PINS_ERROR);
-  } 
+    sendFailure(RANGE_ERROR);
+  }
 }
 
 void setOutputPWM(int pin, int argument, bool toShowReply)
