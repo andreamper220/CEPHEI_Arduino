@@ -37,6 +37,7 @@ It allows to:
 |TIME (custom stamp for arduino reset checking)|IGNORED|CUSTOM_STRING / '?'|
 |CFG (set config)|any|4X - according to PWM config table; <br>6 - enable I2C; <br>7 - set for temp. sensors (ONE_WIRE); <br>8 - enable dimmer (lock 2nd pin)<br>97 - show config  pin value; <br>98 - show non-default pins; <br>99 - clear pin value|
 |WDOG (shows all current-voltage, lux, temp, dimmer power characteristics)|IGNORED|IGNORED|
+|RESET (soft Arduino reset)|IGNORED|IGNORED| 
 
 **PWM config table** (PIN / X):
 |44, 45, 46|4, 13|2, 3, 5, 6, 7, 8, 11, 12|9, 10|
