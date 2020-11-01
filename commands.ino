@@ -1,4 +1,4 @@
-void getAnalogInput(int pin, int argument, bool isIRsensor) 
+void getAnalogInput(int pin, int argument) 
 {
   if (in_array(pin, sizeof(AI_PINS) / sizeof(AI_PINS[0]), AI_PINS)) {
     if (argument == 1) {
@@ -8,8 +8,10 @@ void getAnalogInput(int pin, int argument, bool isIRsensor)
     }
     pinMode(pin, INPUT);
     int value = analogRead(pin);
-    if (isIRsensor) {
+    if (pin == IR_SENSOR_PIN) {
       currentTemperatureIR = value;
+    } else if (pin == GLOBAL_ON_PIN) {
+      globalOn = value;
     } else {
       sendValue(String(value));
     }

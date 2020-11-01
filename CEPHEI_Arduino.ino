@@ -88,6 +88,7 @@ byte buff[2];
 int ONE_WIRE_BUS = 8;
 int DIMMER_PIN = 6;
 int IR_SENSOR_PIN = 63;
+int GLOBAL_ON_PIN = 64;
 int SERVOH_PIN = 3;
 
 dimmerLamp dimmer(DIMMER_PIN);
@@ -122,6 +123,7 @@ String data[3];
 float currentTemperature;
 uint16_t currentLux;
 int currentTemperatureIR;
+int globalOn;
 int currentLampPower;
 float currentVoltage_1;
 float currentShuntVoltage_1;
@@ -196,7 +198,8 @@ void loop()
   /** WATCHDOG */
   if (timeDifferenceWatchdog > WDOG_FREQUENCY_MS || timeDifferenceWatchdog <= 0) {
     getLux(1);
-    getAnalogInput(IR_SENSOR_PIN, 0, true);
+    getAnalogInput(IR_SENSOR_PIN, 0);
+    getAnalogInput(GLOBAL_ON_PIN, 0);
     currentLampPower = dimmer.getPower();
     getCurrent(0);
     getCurrent(1);
@@ -275,7 +278,7 @@ void loop()
             sendFailure(NOT_USED_PINS_ERROR);
           } else {
             if (command == "AI") {
-              getAnalogInput(pin, argument, false);
+              getAnalogInput(pin, argument);
             } else if (command == "DI") {
               getDigitalInput(pin, argument);
             } else if (command == "DO") {
@@ -325,6 +328,8 @@ void loop()
                 " VOLT2_" + String(currentVoltage_2, DEC) + " VOLTSNT2_" + String(currentShuntVoltage_2, DEC) + " CURR2_" + String(currentCurrent_2, DEC) + " POWR2_" + String(currentPower_2, DEC));
               isSuccess = true;
               setWatchdogEnabled();
+            } else if (command == "RESET") {
+              resetFunc();
             }
             datas[0][0] = "";
             datas[1][0] = "";
