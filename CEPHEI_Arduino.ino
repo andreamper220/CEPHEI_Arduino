@@ -168,15 +168,19 @@ void setup()
   for (byte i = 54; i <= 70; i++) {
     AI_PINS[i - 54] = i;
     DO_PINS[i] = i;
-    if (i != IR_SENSOR_PIN) {
-      setOutput(i, LOW, false);
+    if (i != IR_SENSOR_PIN && i != GLOBAL_ON_PIN) {
+      setOutput(i, HIGH, false);
     }
   }
   for (byte i = 0; i <= 53; i++) {
     DO_PINS[i] = i;
     if (i != DIMMER_PIN) {
       DI_PINS[i] = i;
-      setOutputPWM(i, 0, false);
+      if (in_array(i, sizeof(PWM_PINS) / sizeof(PWM_PINS[0]), PWM_PINS)) {
+        setOutputPWM(i, 0, false);
+      } else {
+        setOutput(i, HIGH, false);
+      }
     }
   }
   dimmer.setPower(2);
