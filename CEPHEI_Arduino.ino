@@ -324,7 +324,7 @@ void loop()
                 setCustomStamp(data[2]);
               }
             } else if (command == "WDOG") {
-              Serial.println("@OK TEMP_" + String(currentTemperature, DEC) + " LUX_" + String(currentLux) +
+              Serial.println("@OK GLOBALON_" + String(globalOn) + " TEMP_" + String(currentTemperature, DEC) + " LUX_" + String(currentLux) +
                 " IR_" + String(currentTemperatureIR) + " DIMMER_" + String(dimmer.getPower()) + 
                 " VOLT1_" + String(currentVoltage_1, DEC) + " VOLTSNT1_" + String(currentShuntVoltage_1, DEC) + " CURR1_" + String(currentCurrent_1, DEC) + " POWR1_" + String(currentPower_1, DEC) +
                 " VOLT2_" + String(currentVoltage_2, DEC) + " VOLTSNT2_" + String(currentShuntVoltage_2, DEC) + " CURR2_" + String(currentCurrent_2, DEC) + " POWR2_" + String(currentPower_2, DEC));
