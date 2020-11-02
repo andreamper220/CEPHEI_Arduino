@@ -154,7 +154,7 @@ void setup()
   INA.setShuntConversion(8500);                                               
   INA.setMode(INA_MODE_CONTINUOUS_BOTH);
   servoHold.attach(SERVOH_PIN);
-  servoHold.write(0);
+  servoHold.write(750);
   
   byte isConfigured = eeprom_read_byte(100);
   
