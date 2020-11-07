@@ -178,8 +178,6 @@ void setup()
       DI_PINS[i] = i;
       if (in_array(i, sizeof(PWM_PINS) / sizeof(PWM_PINS[0]), PWM_PINS)) {
         setOutputPWM(i, 0, false);
-      } else {
-        setOutput(i, HIGH, false);
       }
     }
   }
